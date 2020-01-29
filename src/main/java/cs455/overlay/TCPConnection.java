@@ -8,8 +8,8 @@ import java.net.Socket;
 import java.net.SocketException;
 
 public class TCPConnection{
-
-    private static Logger LOG = LogManager.getLogger(TCPConnection.class);
+    
+    private static final Logger LOG = LogManager.getLogger(TCPConnection.class);
 
     private Socket sendSocket;
     private Socket recvSocket;
@@ -23,7 +23,7 @@ public class TCPConnection{
 
     public TCPConnection(int port) {
         this.port = port;
-        System.out.println("start it up baybe");
+        LOG.debug("start it up baybe");
         Thread listenThread = new Thread(this::listenThread);
         recvThread = new Thread(this::recvThread);
         listenThread.start();
@@ -31,9 +31,9 @@ public class TCPConnection{
 
     public void connect(String ip, int port) {
         try {
-            System.out.println("Sending secret integer (76)");
+            LOG.debug("Sending secret integer (76)");
             sendSocket = new Socket(ip, port);
-            System.out.println("Connected to: "+sendSocket.getInetAddress());
+            LOG.debug("Connected to: "+sendSocket.getInetAddress());
             dataOut = new DataOutputStream(sendSocket.getOutputStream());
             dataOut.writeInt(75);
             dataOut.flush();
@@ -43,15 +43,15 @@ public class TCPConnection{
     }
 
     public void recvThread() {
-        System.out.println("Receiving");
+        LOG.debug("Receiving");
         while(recvSocket != null && !terminate){
             try {
-                System.out.println("server gonna read");
+                LOG.debug("server gonna read");
                 int data = dataIn.readInt();
-                LOG.warn("received: "+data);
+                LOG.debug("received: "+data);
 
             } catch (SocketException se){
-                System.out.println(se.getMessage());
+                LOG.debug(se.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -60,11 +60,11 @@ public class TCPConnection{
 
     private void listenThread() {
         try {
-            System.out.print("listening");
+            LOG.debug("listening");
             serverSocket = new ServerSocket(port);
             while (!terminate) {
                     recvSocket = serverSocket.accept();
-                    System.out.println("Server address: "+serverSocket.getInetAddress());
+                    LOG.debug("Server address: "+serverSocket.getInetAddress());
                     dataIn = new DataInputStream(recvSocket.getInputStream());
                     recvThread.start();
             }
@@ -78,6 +78,9 @@ public class TCPConnection{
     }
 
     public static void main(String[] args) throws InterruptedException {
+        LOG.warn("test");
+        LOG.debug("TESTING DEBUG");
+        LOG.error("ERROR");
         TCPConnection a = new TCPConnection(50000);
         TCPConnection b = new TCPConnection(50001);
         Thread.sleep(5000);
