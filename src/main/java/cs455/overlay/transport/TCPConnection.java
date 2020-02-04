@@ -31,11 +31,21 @@ public class TCPConnection{
     }
     
     public void send(Message m){
-        Message.write(dataOut, m);
+        try {
+            dataOut.write(m.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     public Message recvAnyMessages(){
-        return Message.read(this.dataIn);
+        try {
+            if (dataIn.available() > 0)
+                return Message.getMessage(dataIn);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
     
     public DataInputStream getDataIN(){

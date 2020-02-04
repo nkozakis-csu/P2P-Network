@@ -12,11 +12,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-abstract class Node {
+abstract class Node implements Runnable {
 	
 	private static final Logger LOG = LogManager.getLogger(Node.class);
 	
-	private int ID;
+	protected int ID;
 	protected String type = "node";
 	private boolean terminate = false;
 	private int sendTracker = 0;
@@ -28,24 +28,27 @@ abstract class Node {
 	protected HashMap<Integer, TCPConnection> routingTable = new HashMap<Integer, TCPConnection>(); //Routing ID, connection to other node
 	private int routingTableSize;
 	
-	public Node(){
-		LOG.info("NODE STARTED");
+	public Node(int id){
+		this.ID = id;
 	}
 	
-	protected void listenThread() {
+	protected synchronized void listenThread() {
 		try {
-			LOG.debug("listening");
+			LOG.debug(this.ID+": listening");
 			ServerSocket serverSocket = new ServerSocket(0);
 			port = serverSocket.getLocalPort();
+			notify();
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
 				LOG.info(String.format("Server accepted connection from: %s", recvSocket.getLocalAddress()));
 				consIN.add(new TCPConnection(recvSocket, 0));
-				Message.write(consIN.get(0).getDataOut(), new Message(Protocol.OVERLAY_NODE_SENDS_REGISTRATION, 10));
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	public void send(int index, Message m){
+		routingTable.get(index).send(m);
 	}
 	
 	public void forwardMessage(Message m, int id){
@@ -56,32 +59,36 @@ abstract class Node {
 				e.printStackTrace();
 			}
 		}
-		Message.write(routingTable.get(0).getDataOut(), m);
+		routingTable.get(0).send(m);
 	}
 	
 	private void recvThread(){
 		while (!terminate){
-			if(this.consIN.size()>0){
-				LOG.info("RECEIVED: "+consIN.get(0).recvAnyMessages().toString());
-			}
-			else{
-				try{
-					Thread.sleep(50);
-				}catch(InterruptedException e){
-					e.printStackTrace();
-				}
+			for(TCPConnection con : consIN){
+				Message message = con.recvAnyMessages();
+				if (message != null)
+					LOG.info(this.ID + " RECEIVED: " +message.toString());
 			}
 		}
 	}
-	public int getPort(){
+	public synchronized int getPort() throws InterruptedException {
+		if (this.port == 0){
+			wait();
+		}
 		return port;
 	}
 	
-	public void start(){
+	public void run(){
+		LOG.info(this.type +":"+this.ID+": node started");
 		Thread listener = new Thread(this::listenThread);
 		listener.start();
 		Thread receiver = new Thread(this::recvThread);
 		receiver.start();
+	}
+	
+	public void start(){
+		Thread t = new Thread(this);
+		t.start();
 	}
 	
 }

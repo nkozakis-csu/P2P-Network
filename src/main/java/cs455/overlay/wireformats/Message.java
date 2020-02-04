@@ -3,45 +3,77 @@ package cs455.overlay.wireformats;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 
 public class Message {
 	
-	private static Logger log = LogManager.getLogger(Message.class);
+	private static Logger LOG = LogManager.getLogger(Message.class);
 	
-	public Protocol protocol;
-	public int message;
+	private Protocol protocol;
+	private byte[] data;
+	private Object subclass;
+	protected ByteArrayOutputStream bout;
+	protected DataOutputStream dout;
+	protected ByteArrayInputStream bin;
+	protected DataInputStream din;
 	
-	public Message(Protocol protocol, int message){
+	public Message(Protocol protocol){
 		this.protocol = protocol;
-		this.message = message;
-	}
-	
-	public static void write(DataOutputStream out, Message m){
 		try {
-			out.writeInt(10);
-			out.flush();
+			bout = new ByteArrayOutputStream();
+			dout = new DataOutputStream(new BufferedOutputStream(bout));
+			dout.writeByte(protocol.getID());
+//			dout.writeLong(System.currentTimeMillis());
+			dout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static Message read(DataInputStream in){
-		try {
-			return new Message(Protocol.OVERLAY_NODE_SENDS_REGISTRATION, in.readInt());
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+	public static Message getMessage(DataInputStream din) throws Exception{
+		Protocol p = Protocol.getProtocol(din.readByte());
+		int size = din.readInt();
+		byte[] msg = new byte[size];
+		din.readFully(msg, 0, size);
+		switch(p){
+			case OVERLAY_NODE_SENDS_REGISTRATION:
+				return new OverlayNodeSendsRegistration(msg);
+			case OVERLAY_NODE_SENDS_DEREGISTRATION:
+				return null;
+			default:
+				throw new Exception("Unknown packet protocol received : "+p);
 		}
 	}
 	
-	public int getSourceID(){
-		return 0;
+	public Message(byte[] b){
+		bout = new ByteArrayOutputStream();
+		dout = new DataOutputStream(new BufferedOutputStream(bout));
+		bin = new ByteArrayInputStream(b);
+		din = new DataInputStream(new BufferedInputStream(bin));
+		try {
+			byte p = din.readByte();
+			this.protocol = Protocol.getProtocol(p);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
-	public int getDestinationID() {
-		return 0;
+	public String toString(){
+		return "Protocol: "+protocol.toString()+", Message: "+ Arrays.toString(this.getBytes());
+	}
+	
+	public byte[] getBytes(){
+		return bout.toByteArray();
+	}
+	
+	public static void main(String[] args) {
+		LOG.info("test");
+		OverlayNodeSendsRegistration m = new OverlayNodeSendsRegistration("localhost", 50000);
+		System.out.println(new String(m.getBytes()));
+		Message received = new Message(m.getBytes());
+		System.out.println(received.toString());
+		
 	}
 }
