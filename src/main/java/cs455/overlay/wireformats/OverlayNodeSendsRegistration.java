@@ -1,9 +1,6 @@
 package cs455.overlay.wireformats;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class OverlayNodeSendsRegistration extends Message {
 	
@@ -23,8 +20,23 @@ public class OverlayNodeSendsRegistration extends Message {
 	}
 	
 	public OverlayNodeSendsRegistration(byte[] b){
-		super(Protocol.OVERLAY_NODE_SENDS_REGISTRATION);
-		
-		
+		super(Protocol.OVERLAY_NODE_SENDS_REGISTRATION, b);
+		try {
+			int ipLength = din.readInt();
+			byte[] ipBytes = new byte[ipLength];
+			din.readFully(ipBytes, 0, ipLength);
+			ip = new String(ipBytes);
+			port = din.readInt();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public String toString() {
+		return "OverlayNodeSendsRegistration{" +
+				"ip='" + ip + '\'' +
+				", port=" + port +
+				'}';
 	}
 }

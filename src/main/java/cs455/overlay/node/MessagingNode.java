@@ -26,7 +26,7 @@ public class MessagingNode extends Node implements Runnable {
 	public void connectToMessagingNode(String ip, int port, int id, int distance) {
 		try {
 			Socket socket = new Socket(ip, port);
-			routingTable.put(id, new TCPConnection(socket, distance));
+			routingTable.put(id, new TCPConnection(socket, distance, recvQueue));
 		} catch(IOException e){
 			e.printStackTrace();
 		}
@@ -35,8 +35,9 @@ public class MessagingNode extends Node implements Runnable {
 	public void connectToRegistry(String ip, int port){
 		try {
 			Socket socket = new Socket(ip, port);
-			registrySock = new TCPConnection(socket, 0);
+			registrySock = new TCPConnection(socket, 0, recvQueue);
 			registrySock.send(new OverlayNodeSendsRegistration("localhost", this.getPort()));
+			LOG.info(this.ID+": sending registration");
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -47,11 +48,6 @@ public class MessagingNode extends Node implements Runnable {
 		System.out.println("TEST");
 		Registry r = new Registry(666);
 		r.start();
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		int port = r.getPort();
 		LOG.debug("PORT="+port);
 		MessagingNode a = new MessagingNode(0);

@@ -9,8 +9,11 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 abstract class Node implements Runnable {
 	
@@ -23,6 +26,7 @@ abstract class Node implements Runnable {
 	private int receiveTracker = 0;
 	private int relayTracker = 0;
 	private int port = 0;
+	protected BlockingQueue<Message> recvQueue;
 	
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
 	protected HashMap<Integer, TCPConnection> routingTable = new HashMap<Integer, TCPConnection>(); //Routing ID, connection to other node
@@ -30,18 +34,22 @@ abstract class Node implements Runnable {
 	
 	public Node(int id){
 		this.ID = id;
+		this.recvQueue = new LinkedBlockingQueue<>();
 	}
 	
-	protected synchronized void listenThread() {
+	protected void listenThread() {
 		try {
 			LOG.debug(this.ID+": listening");
 			ServerSocket serverSocket = new ServerSocket(0);
 			port = serverSocket.getLocalPort();
-			notify();
+			synchronized (this){
+				notifyAll();
+			}
+			LOG.info(this.ID+": setting port="+port);
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
-				LOG.info(String.format("Server accepted connection from: %s", recvSocket.getLocalAddress()));
-				consIN.add(new TCPConnection(recvSocket, 0));
+				LOG.info(String.format(this.ID + ": Server accepted connection from: %s", recvSocket.getLocalAddress()));
+				consIN.add(new TCPConnection(recvSocket, 0, recvQueue));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -64,15 +72,21 @@ abstract class Node implements Runnable {
 	
 	private void recvThread(){
 		while (!terminate){
-			for(TCPConnection con : consIN){
-				Message message = con.recvAnyMessages();
-				if (message != null)
-					LOG.info(this.ID + " RECEIVED: " +message.toString());
+			Message message = null;
+			try {
+				message = recvQueue.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
+			if (message != null)
+				LOG.info(this.ID + " RECEIVED: " +message.toString());
 		}
 	}
+	
 	public synchronized int getPort() throws InterruptedException {
-		if (this.port == 0){
+		while (this.port == 0) {
+			LOG.debug(this.ID+" wait because port=0");
+//			Thread.sleep(200);
 			wait();
 		}
 		return port;
@@ -88,6 +102,7 @@ abstract class Node implements Runnable {
 	
 	public void start(){
 		Thread t = new Thread(this);
+		LOG.info("Starting node "+this.ID+" thread");
 		t.start();
 	}
 	

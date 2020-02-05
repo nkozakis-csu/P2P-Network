@@ -18,13 +18,16 @@ public class Message {
 	protected ByteArrayInputStream bin;
 	protected DataInputStream din;
 	
+	public Message(){
+		bout = new ByteArrayOutputStream();
+		dout = new DataOutputStream(new BufferedOutputStream(bout));
+	}
+	
 	public Message(Protocol protocol){
+//		Message();
 		this.protocol = protocol;
 		try {
-			bout = new ByteArrayOutputStream();
-			dout = new DataOutputStream(new BufferedOutputStream(bout));
 			dout.writeByte(protocol.getID());
-//			dout.writeLong(System.currentTimeMillis());
 			dout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -46,14 +49,22 @@ public class Message {
 		}
 	}
 	
+	public Message(Protocol p, byte[] b){
+		super();
+		data = b;
+		protocol = p;
+	}
+	
 	public Message(byte[] b){
-		bout = new ByteArrayOutputStream();
-		dout = new DataOutputStream(new BufferedOutputStream(bout));
+		super();
 		bin = new ByteArrayInputStream(b);
 		din = new DataInputStream(new BufferedInputStream(bin));
 		try {
-			byte p = din.readByte();
-			this.protocol = Protocol.getProtocol(p);
+			this.protocol = Protocol.getProtocol(din.readByte());
+			int size = din.readInt();
+			this.data = new byte[size];
+			din.readFully(data, 0, size);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -69,11 +80,20 @@ public class Message {
 	}
 	
 	public static void main(String[] args) {
-		LOG.info("test");
-		OverlayNodeSendsRegistration m = new OverlayNodeSendsRegistration("localhost", 50000);
-		System.out.println(new String(m.getBytes()));
-		Message received = new Message(m.getBytes());
-		System.out.println(received.toString());
+		Message m = new Message();
+		try {
+			m.dout.writeInt(10);
+			m.dout.writeInt(20);
+			m.dout.flush();
+			LOG.info(Arrays.toString(m.bout.toByteArray()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+//		LOG.info("test");
+//		OverlayNodeSendsRegistration m = new OverlayNodeSendsRegistration("localhost", 50000);
+//		System.out.println(new String(m.getBytes()));
+//		Message received = new Message(m.getBytes());
+//		System.out.println(received.toString());
 		
 	}
 }
