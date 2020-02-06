@@ -50,6 +50,7 @@ public class TCPConnection{
             try {
                 Message m = Message.getMessage(dataIn);
                 if (m != null){
+                    m.setSource(this);
                     recvQueue.add(m);
                 }
             }catch(Exception e){

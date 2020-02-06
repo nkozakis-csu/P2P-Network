@@ -1,22 +1,25 @@
 package cs455.overlay.wireformats;
 
+import cs455.overlay.transport.TCPConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Message {
 	
 	private static Logger LOG = LogManager.getLogger(Message.class);
 	
-	private Protocol protocol;
-	private byte[] data;
-	private Object subclass;
+	protected Protocol protocol;
+	protected byte[] data;
 	protected ByteArrayOutputStream bout;
-	protected DataOutputStream dout;
+	protected DataOutputStream dout; //for writing to data array
 	protected ByteArrayInputStream bin;
-	protected DataInputStream din;
+	protected DataInputStream din; // for reading from transmitted bytearray
+	
+	protected TCPConnection source;
 	
 	public Message(){
 		bout = new ByteArrayOutputStream();
@@ -24,21 +27,23 @@ public class Message {
 	}
 	
 	public Message(Protocol protocol){
-//		Message();
+		this();
 		this.protocol = protocol;
-		try {
-			dout.writeByte(protocol.getID());
-			dout.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
-	public static Message getMessage(DataInputStream din) throws Exception{
-		Protocol p = Protocol.getProtocol(din.readByte());
-		int size = din.readInt();
+	public Message(Protocol p, byte[] b){
+		this();
+		bin = new ByteArrayInputStream(b);
+		din = new DataInputStream(new BufferedInputStream(bin));
+		this.data = b;
+		this.protocol = p;
+	}
+	
+	public static Message getMessage(DataInputStream in) throws Exception{
+		Protocol p = Protocol.getProtocol(in.readByte());
+		int size = in.readInt();
 		byte[] msg = new byte[size];
-		din.readFully(msg, 0, size);
+		in.readFully(msg, 0, size);
 		switch(p){
 			case OVERLAY_NODE_SENDS_REGISTRATION:
 				return new OverlayNodeSendsRegistration(msg);
@@ -49,51 +54,43 @@ public class Message {
 		}
 	}
 	
-	public Message(Protocol p, byte[] b){
-		super();
-		data = b;
-		protocol = p;
-	}
-	
-	public Message(byte[] b){
-		super();
-		bin = new ByteArrayInputStream(b);
-		din = new DataInputStream(new BufferedInputStream(bin));
-		try {
-			this.protocol = Protocol.getProtocol(din.readByte());
-			int size = din.readInt();
-			this.data = new byte[size];
-			din.readFully(data, 0, size);
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	
 	public String toString(){
 		return "Protocol: "+protocol.toString()+", Message: "+ Arrays.toString(this.getBytes());
 	}
 	
 	public byte[] getBytes(){
-		return bout.toByteArray();
+		ByteBuffer packer = ByteBuffer.allocate(5+this.data.length); // 5 = protocol (1 byte) + data.length ( 4 byte integer)
+		packer.put(this.protocol.getID());
+		packer.putInt(this.data.length);
+		packer.put(this.data);
+		return packer.array();
+	}
+	
+	public Protocol getProtocol() {
+		return protocol;
+	}
+	
+	public void setSource(TCPConnection con) {
+		source = con;
+	}
+	
+	public TCPConnection getSource(){
+		return source;
 	}
 	
 	public static void main(String[] args) {
-		Message m = new Message();
+
+		LOG.info("test");
+		OverlayNodeSendsRegistration m = new OverlayNodeSendsRegistration("localhost", 50000);
+		System.out.println(new String(m.getBytes()));
+		DataInputStream d = new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(m.getBytes())));
+		Message received = null;
 		try {
-			m.dout.writeInt(10);
-			m.dout.writeInt(20);
-			m.dout.flush();
-			LOG.info(Arrays.toString(m.bout.toByteArray()));
-		} catch (IOException e) {
+			received = Message.getMessage(d);
+			System.out.println(received.toString());
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-//		LOG.info("test");
-//		OverlayNodeSendsRegistration m = new OverlayNodeSendsRegistration("localhost", 50000);
-//		System.out.println(new String(m.getBytes()));
-//		Message received = new Message(m.getBytes());
-//		System.out.println(received.toString());
-		
+
 	}
 }

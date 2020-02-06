@@ -21,7 +21,7 @@ abstract class Node implements Runnable {
 	
 	protected int ID;
 	protected String type = "node";
-	private boolean terminate = false;
+	protected boolean terminate = false;
 	private int sendTracker = 0;
 	private int receiveTracker = 0;
 	private int relayTracker = 0;
@@ -70,16 +70,19 @@ abstract class Node implements Runnable {
 		routingTable.get(0).send(m);
 	}
 	
+	abstract void handleMessages(Message m);
+	
 	private void recvThread(){
+		Message message;
 		while (!terminate){
-			Message message = null;
+			 message = null;
 			try {
 				message = recvQueue.take();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			if (message != null)
-				LOG.info(this.ID + " RECEIVED: " +message.toString());
+				this.handleMessages(message);
 		}
 	}
 	

@@ -23,6 +23,11 @@ public class MessagingNode extends Node implements Runnable {
 		LOG.info(type+":"+this.ID+": messagingNode created");
 	}
 	
+	@Override
+	void handleMessages(Message m) {
+		LOG.debug(this.ID+": received message: "+m.toString());
+	}
+	
 	public void connectToMessagingNode(String ip, int port, int id, int distance) {
 		try {
 			Socket socket = new Socket(ip, port);
