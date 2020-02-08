@@ -47,8 +47,14 @@ public class Message {
 		switch(p){
 			case OVERLAY_NODE_SENDS_REGISTRATION:
 				return new OverlayNodeSendsRegistration(msg);
+			case REGISTRY_REPORTS_REGISTRATION_STATUS:
+				return new RegistryReportsRegistrationStatus(msg);
 			case OVERLAY_NODE_SENDS_DEREGISTRATION:
 				return null;
+			case REGISTRY_SENDS_NODE_MANIFEST:
+				return new RegistrySendsNodeManifest(msg);
+			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
+				return new NodeReportsOverlaySetupStatus(msg);
 			default:
 				throw new Exception("Unknown packet protocol received : "+p);
 		}

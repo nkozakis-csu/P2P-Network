@@ -2,6 +2,7 @@ package cs455.overlay.node;
 
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.Message;
+import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
 import org.apache.logging.log4j.LogManager;
@@ -36,6 +37,8 @@ public class Registry extends Node implements Runnable{
 				registerNode((OverlayNodeSendsRegistration) m);
 				break;
 			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
+                NodeReportsOverlaySetupStatus status = (NodeReportsOverlaySetupStatus) m;
+                m
 		}
 	}
 	
