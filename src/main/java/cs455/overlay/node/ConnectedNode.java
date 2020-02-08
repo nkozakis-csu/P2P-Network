@@ -8,6 +8,7 @@ public class ConnectedNode {
 	public TCPConnection con;
 	public String ip;
 	public int port;
+	public boolean status = false;
 	
 	public ConnectedNode(int id, TCPConnection con){
 		this.ID = id;

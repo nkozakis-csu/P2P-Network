@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.Message;
 import cs455.overlay.wireformats.Protocol;
@@ -29,8 +30,7 @@ abstract class Node implements Runnable {
 	protected BlockingQueue<Message> recvQueue;
 	
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
-	protected HashMap<Integer, TCPConnection> routingTable = new HashMap<Integer, TCPConnection>(); //Routing ID, connection to other node
-	private int routingTableSize;
+	protected RoutingTable routingTable;
 	
 	public Node(int id){
 		this.ID = id;
@@ -56,7 +56,7 @@ abstract class Node implements Runnable {
 		}
 	}
 	public void send(int index, Message m){
-		routingTable.get(index).send(m);
+		routingTable.get(index).con.send(m);
 	}
 	
 	public void forwardMessage(Message m, int id){
@@ -67,7 +67,7 @@ abstract class Node implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		routingTable.get(0).send(m);
+		routingTable.get(0).con.send(m);
 	}
 	
 	abstract void handleMessages(Message m);

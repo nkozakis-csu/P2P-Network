@@ -1,20 +1,23 @@
 package cs455.overlay.node;
 
+import cs455.overlay.routing.RoutingEntry;
+import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.Message;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Map;
 
 public class MessagingNode extends Node implements Runnable {
 	
 	private static final Logger LOG = LogManager.getLogger(MessagingNode.class);
-	
 	private TCPConnection registrySock;
 	
 	public MessagingNode(int id){
@@ -25,13 +28,23 @@ public class MessagingNode extends Node implements Runnable {
 	
 	@Override
 	void handleMessages(Message m) {
+		switch(m.getProtocol()){
+			case REGISTRY_SENDS_NODE_MANIFEST:
+				RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) m;
+				routingTable = manifest.getRoutingTable();
+				this.connectToMessagingNodes();
+		}
 		LOG.debug(this.ID+": received message: "+m.toString());
 	}
 	
-	public void connectToMessagingNode(String ip, int port, int id, int distance) {
+	public void connectToMessagingNodes() {
 		try {
-			Socket socket = new Socket(ip, port);
-			routingTable.put(id, new TCPConnection(socket, distance, recvQueue));
+			for(Map.Entry<Integer, RoutingEntry> entry: routingTable.getEntrySet()) {
+				RoutingEntry re = entry.getValue();
+				Socket socket = new Socket(re.ip, re.port);
+				TCPConnection con = new TCPConnection(socket, re.distance, recvQueue);
+				re.addTCPConnection(con);
+			}
 		} catch(IOException e){
 			e.printStackTrace();
 		}

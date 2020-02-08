@@ -26,7 +26,7 @@ public class Registry extends Node implements Runnable{
 	private void registerNode(OverlayNodeSendsRegistration o){
 		nodeMap.put(numNodes, new ConnectedNode(numNodes, o.getSource(), o.ip, o.port));
 		numNodes++;
-		LOG.info("registry added node id: "+nodeMap.get(numNodes-1)+" with address "+o.ip+":"+o.port);
+		LOG.info("registry added node id: "+nodeMap.get(numNodes-1).ID+" with address "+o.ip+":"+o.port);
 	}
 	
 	@Override
@@ -35,8 +35,7 @@ public class Registry extends Node implements Runnable{
 			case OVERLAY_NODE_SENDS_REGISTRATION:
 				registerNode((OverlayNodeSendsRegistration) m);
 				break;
-			case OVERLAY_NODE_SENDS_DEREGISTRATION:
-				LOG.info(this.ID+" - Deregistrates");
+			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
 		}
 	}
 	

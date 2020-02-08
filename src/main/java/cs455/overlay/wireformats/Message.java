@@ -84,10 +84,11 @@ public class Message {
 		OverlayNodeSendsRegistration m = new OverlayNodeSendsRegistration("localhost", 50000);
 		System.out.println(new String(m.getBytes()));
 		DataInputStream d = new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(m.getBytes())));
-		Message received = null;
 		try {
-			received = Message.getMessage(d);
-			System.out.println(received.toString());
+			Message received = Message.getMessage(d);
+			if (received != null){
+				System.out.println(received.toString());
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
