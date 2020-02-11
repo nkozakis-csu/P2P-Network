@@ -16,7 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-abstract class Node implements Runnable {
+abstract class Node{
 	
 	private static final Logger LOG = LogManager.getLogger(Node.class);
 	
@@ -26,29 +26,29 @@ abstract class Node implements Runnable {
 	private int sendTracker = 0;
 	private int receiveTracker = 0;
 	private int relayTracker = 0;
-	private int port = 0;
+	protected int port = 0;
 	protected BlockingQueue<Message> recvQueue;
 	
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
 	protected RoutingTable routingTable;
 	
-	public Node(int id){
-		this.ID = id;
+	public Node(){
+		this.ID = -1;
 		this.recvQueue = new LinkedBlockingQueue<>();
 	}
 	
-	protected void listenThread() {
+	protected void listenThread(){
 		try {
-			LOG.debug(this.ID+": listening");
-			ServerSocket serverSocket = new ServerSocket(0);
+			LOG.debug(this.type+": listening");
+			ServerSocket serverSocket = new ServerSocket(port);
 			port = serverSocket.getLocalPort();
 			synchronized (this){
 				notifyAll();
 			}
-			LOG.info(this.ID+": setting port="+port);
+			LOG.info(this.type+": setting port="+port);
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
-				LOG.info(String.format(this.ID + ": Server accepted connection from: %s", recvSocket.getLocalAddress()));
+				LOG.info(String.format(this.type + ": Server accepted connection from: %s", recvSocket.getLocalAddress()));
 				consIN.add(new TCPConnection(recvSocket, 0, recvQueue));
 			}
 		} catch (Exception e) {
@@ -101,12 +101,6 @@ abstract class Node implements Runnable {
 		listener.start();
 		Thread receiver = new Thread(this::recvThread);
 		receiver.start();
-	}
-	
-	public void start(){
-		Thread t = new Thread(this);
-		LOG.info("Starting node "+this.ID+" thread");
-		t.start();
 	}
 	
 }

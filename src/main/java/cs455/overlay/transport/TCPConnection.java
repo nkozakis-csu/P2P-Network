@@ -25,6 +25,7 @@ public class TCPConnection{
         this.sock = socket;
         this.distance = distance;
         this.recvQueue = queue;
+//        port = this.sock.getPort();
         this.recvThread = new Thread(this::recvPopper);
         try {
             this.dataIn = new DataInputStream(sock.getInputStream());
@@ -53,7 +54,9 @@ public class TCPConnection{
                     m.setSource(this);
                     recvQueue.add(m);
                 }
-            }catch(Exception e){
+            }catch(EOFException e){
+                //do nothin
+            } catch(Exception e){
                 e.printStackTrace();
             }
         }

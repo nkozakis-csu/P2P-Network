@@ -14,16 +14,21 @@ import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import java.util.Scanner;
 
 public class MessagingNode extends Node implements Runnable {
 	
 	private static final Logger LOG = LogManager.getLogger(MessagingNode.class);
 	private TCPConnection registrySock;
+	private String ip;
+	private int port;
 	
-	public MessagingNode(int id){
-		super(id);
+	public MessagingNode(String ip, int port){
+		super();
 		this.type="Messaging Node";
 		LOG.info(type+":"+this.ID+": messagingNode created");
+		this.ip = ip;
+		this.port = port;
 	}
 	
 	@Override
@@ -60,20 +65,48 @@ public class MessagingNode extends Node implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	@Override
+	public void run(){
+		super.run();
+		this.connectToRegistry(this.ip, this.port);
+	}
+	
+	public void start(){
+		Thread t = new Thread(this);
+		t.start();
+	}
 	
 	public static void main(String[] args) throws Exception {
-		LOG.debug("STARTING");
-		System.out.println("TEST");
-		Registry r = new Registry(666);
-		r.start();
-		int port = r.getPort();
-		LOG.debug("PORT="+port);
-		MessagingNode a = new MessagingNode(0);
-		MessagingNode b = new MessagingNode(1);
-		a.start();
-		b.start();
-		a.connectToRegistry("localhost", port);
-		b.connectToRegistry("localhost", port);
+		String ip = args[0];
+		int port = Integer.parseInt(args[1]);
+		MessagingNode node = new MessagingNode(ip, port);
+		node.start();
+		Scanner scanner = new Scanner(System.in);
+		String command = scanner.nextLine();
+		while (!command.equals("exit")){
+			if (command.equals("exit-overlay")){
+//				node.
+			}else if (command.equals("print-counters-and-diagnostic")){
+//				 node.listMessagingNodes();
+			}else{
+				System.out.println("Unknown command");
+			}
+			
+			command = scanner.nextLine();
+		}
+		
+//		LOG.debug("STARTING");
+//		System.out.println("TEST");
+//		Registry r = new Registry();
+//		r.start();
+//		int port = r.getPort();
+//		LOG.debug("PORT="+port);
+//		MessagingNode a = new MessagingNode();
+//		MessagingNode b = new MessagingNode();
+//		a.start();
+//		b.start();
+//		a.connectToRegistry("localhost", port);
+//		b.connectToRegistry("localhost", port);
 		
 	}
 }
