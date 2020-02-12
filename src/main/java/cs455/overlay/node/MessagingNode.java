@@ -3,10 +3,7 @@ package cs455.overlay.node;
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
-import cs455.overlay.wireformats.Message;
-import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
-import cs455.overlay.wireformats.Protocol;
-import cs455.overlay.wireformats.RegistrySendsNodeManifest;
+import cs455.overlay.wireformats.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
@@ -22,6 +19,7 @@ public class MessagingNode extends Node implements Runnable {
 	private TCPConnection registrySock;
 	private String ip;
 	private int port;
+	private int numNodes;
 	
 	public MessagingNode(String ip, int port){
 		super();
@@ -34,10 +32,19 @@ public class MessagingNode extends Node implements Runnable {
 	@Override
 	void handleMessages(Message m) {
 		switch(m.getProtocol()){
+			case REGISTRY_REPORTS_REGISTRATION_STATUS:
+				RegistryReportsRegistrationStatus status = (RegistryReportsRegistrationStatus) m;
+				numNodes = status.numNodes;
+				this.ID = status.id;
+				System.out.println(status.msg);
+				break;
 			case REGISTRY_SENDS_NODE_MANIFEST:
 				RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) m;
 				routingTable = manifest.getRoutingTable();
 				this.connectToMessagingNodes();
+				break;
+			case REGISTRY_REQUESTS_TASK_INITIATE:
+				break;
 		}
 		LOG.debug(this.ID+": received message: "+m.toString());
 	}
@@ -75,6 +82,14 @@ public class MessagingNode extends Node implements Runnable {
 		Thread t = new Thread(this);
 		t.start();
 	}
+
+	public void printDiagnostics(){
+		System.out.println("ID: "+this.ID);
+	}
+
+	public void exitOverlay(){
+		this.terminate = true;
+	}
 	
 	public static void main(String[] args) throws Exception {
 		String ip = args[0];
@@ -83,17 +98,16 @@ public class MessagingNode extends Node implements Runnable {
 		node.start();
 		Scanner scanner = new Scanner(System.in);
 		String command = scanner.nextLine();
-		while (!command.equals("exit")){
-			if (command.equals("exit-overlay")){
-//				node.
-			}else if (command.equals("print-counters-and-diagnostic")){
-//				 node.listMessagingNodes();
+		while (!command.equals("exit-overlay")){
+			if (command.equals("print-counters-and-diagnostic")){
+				 node.printDiagnostics();
 			}else{
 				System.out.println("Unknown command");
 			}
 			
 			command = scanner.nextLine();
 		}
+		node.exitOverlay();
 		
 //		LOG.debug("STARTING");
 //		System.out.println("TEST");

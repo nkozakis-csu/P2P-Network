@@ -8,23 +8,31 @@ public class RegistryReportsRegistrationStatus extends Message{
 	public String msg;
 	public int numNodes;
 
-	RegistryReportsRegistrationStatus(int id, int numNodes){
+	public RegistryReportsRegistrationStatus(int id, int numNodes){
 		super(Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS);
 		this.id = id;
 		this.numNodes = numNodes;
+		if(id>=0){
+			msg = "Registration request successful. Network has "+numNodes+" nodes. You are ID: "+id;
+		}else{
+			msg = "Registration failed";
+		}
 		try {
 			dout.writeInt(id);
 			dout.writeInt(numNodes);
+			dout.writeInt(msg.length());
+			dout.writeBytes(msg);
+			dout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if(id>=0){
-			msg = "Registration request successful. Network has "+numNodes+" nodes.";
-		}
+
+
+		this.data = bout.toByteArray();
 	
 	}
 	
-	RegistryReportsRegistrationStatus(byte[] b){
+	public RegistryReportsRegistrationStatus(byte[] b){
 		super(Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS, b);
 		try {
 			id = din.readInt();
@@ -32,8 +40,14 @@ public class RegistryReportsRegistrationStatus extends Message{
 			int length = din.readInt();
 			byte[] message = new byte[length];
 			din.readFully(message, 0, length);
+			msg = new String(message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public String toString() {
+		return String.format("{RegistrationReportsRegistrationStatus: id=%d numNodes=%d msg=\"%s\"}", id, numNodes, msg);
 	}
 }

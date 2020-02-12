@@ -55,7 +55,7 @@ abstract class Node{
 			e.printStackTrace();
 		}
 	}
-	public void send(int index, Message m){
+	public void sendData(int index, Message m){
 		routingTable.get(index).con.send(m);
 	}
 	
@@ -88,8 +88,6 @@ abstract class Node{
 	
 	public synchronized int getPort() throws InterruptedException {
 		while (this.port == 0) {
-			LOG.debug(this.ID+" wait because port=0");
-//			Thread.sleep(200);
 			wait();
 		}
 		return port;

@@ -19,4 +19,8 @@ public class RoutingEntry {
     public void addTCPConnection(TCPConnection con){
         this.con = con;
     }
+
+    public String toString(){
+        return String.format("[Entry: id=%d distance=%d ip=%s port=%d", id, distance, ip, port);
+    }
 }

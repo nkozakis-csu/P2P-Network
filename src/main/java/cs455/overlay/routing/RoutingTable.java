@@ -27,4 +27,8 @@ public class RoutingTable {
     public Set<Map.Entry<Integer, RoutingEntry>> getEntrySet(){
         return routingTable.entrySet();
     }
+
+    public String toString(){
+        return routingTable.toString();
+    }
 }

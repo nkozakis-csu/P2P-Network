@@ -1,13 +1,13 @@
 package cs455.overlay.node;
 
+import cs455.overlay.routing.RoutingEntry;
+import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
-import cs455.overlay.wireformats.Message;
-import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
-import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
-import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -18,6 +18,7 @@ public class Registry extends Node implements Runnable{
 	
 	private ConnectedNode[] nodeMap;
 	private int numNodes = 0;
+	private int numRoutingEntries;
 	
 	public Registry(int port) {
 		super();
@@ -29,8 +30,9 @@ public class Registry extends Node implements Runnable{
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
 		nodeMap[numNodes]= new ConnectedNode(numNodes, o.getSource(), o.ip, o.port);
+		LOG.info("registry added node id: "+nodeMap[numNodes].ID+" with address "+o.ip+":"+o.port);
+		o.getSource().send(new RegistryReportsRegistrationStatus(numNodes, numNodes+1));
 		numNodes++;
-		LOG.info("registry added node id: "+nodeMap[numNodes-1].ID+" with address "+o.ip+":"+o.port);
 	}
 	
 	@Override
@@ -56,11 +58,21 @@ public class Registry extends Node implements Runnable{
 		t.start();
 	}
 	
-	public void setupOverlay(){
+	public void setupOverlay(int numRoutingEntries){
+		this.numRoutingEntries = numRoutingEntries;
 		LOG.debug("SETUP OVERLAY");
 		for(int i=0; i<numNodes; i++){
 			ConnectedNode node = nodeMap[i];
-			
+			RoutingTable rt = new RoutingTable();
+			for(int j=0; j<numRoutingEntries; j++){
+				int routeID = (int) ((i+Math.pow(2,j))%numNodes);
+				RoutingEntry entry = new RoutingEntry(routeID, (int) Math.pow(2,j), nodeMap[routeID].ip, nodeMap[routeID].port);
+				LOG.debug(entry.toString());
+				rt.add(entry);
+			}
+			LOG.debug(rt.toString());
+			node.routingTable = rt;
+			node.con.send(new RegistrySendsNodeManifest(rt));
 		}
 	}
 	
@@ -70,6 +82,14 @@ public class Registry extends Node implements Runnable{
 			System.out.print(nodeMap[i].ID+",");
 		}
 		System.out.println("");
+	}
+
+	public void listRoutingTables(){
+
+	}
+
+	public void startNetwork(){
+
 	}
 	
 	
@@ -81,13 +101,20 @@ public class Registry extends Node implements Runnable{
 		String command = scanner.nextLine();
 		while (!command.equals("exit")){
 			if (command.startsWith("setup-overlay")){
-				registry.setupOverlay();
+				String[] info = command.split(" ");
+				if (info.length>1){
+					LOG.info(Arrays.toString(info));
+					int numRoutingEntries = Integer.parseInt(info[1]);
+					registry.setupOverlay(numRoutingEntries);
+				}else{
+					System.out.println("Must add number of routing table entries after setup-overlay");
+				}
 			}else if (command.equals("list-messaging-nodes")){
 				registry.listMessagingNodes();
 			}else if(command.equals("list-routing-tables")){
-			
+				registry.listRoutingTables();
 			}else if(command.startsWith("start")){
-			
+				registry.startNetwork();
 			}else{
 				System.out.println("Unknown command");
 			}
