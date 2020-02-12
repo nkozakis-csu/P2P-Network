@@ -55,6 +55,10 @@ public class Message {
 				return new RegistrySendsNodeManifest(msg);
 			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
 				return new NodeReportsOverlaySetupStatus(msg);
+			case REGISTRY_REQUESTS_TASK_INITIATE:
+				return new RegistryRequestsTaskInitiate(msg);
+			case OVERLAY_NODE_SENDS_DATA:
+				return new OverlayNodeSendsData(msg);
 			default:
 				throw new Exception("Unknown packet protocol received : "+p);
 		}
@@ -65,6 +69,7 @@ public class Message {
 	}
 	
 	public byte[] getBytes(){
+		data = bout.toByteArray();
 		ByteBuffer packer = ByteBuffer.allocate(5+this.data.length); // 5 = protocol (1 byte) + data.length ( 4 byte integer)
 		packer.put(this.protocol.getID());
 		packer.putInt(this.data.length);

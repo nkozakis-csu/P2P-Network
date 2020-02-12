@@ -1,5 +1,6 @@
 package cs455.overlay.node;
 
+import com.sun.org.apache.xalan.internal.xsltc.util.IntegerArray;
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
@@ -8,10 +9,11 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 
+import javax.print.attribute.standard.Destination;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.Socket;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class MessagingNode extends Node implements Runnable {
 	
@@ -44,9 +46,33 @@ public class MessagingNode extends Node implements Runnable {
 				this.connectToMessagingNodes();
 				break;
 			case REGISTRY_REQUESTS_TASK_INITIATE:
+				RegistryRequestsTaskInitiate task = (RegistryRequestsTaskInitiate) m;
+				int numMessages = task.getNumMessages();
+				initiateTask(numMessages);
 				break;
+			case OVERLAY_NODE_SENDS_DATA:
+				OverlayNodeSendsData data = (OverlayNodeSendsData) m;
+				if(data.destination == this.ID) handleData(data);
+				else sendData(data);
 		}
 		LOG.debug(this.ID+": received message: "+m.toString());
+	}
+
+	public void handleData(OverlayNodeSendsData d){
+		LOG.info("RECEIVED DATA:", d.payload);
+	}
+
+	public void initiateTask(int numMessages){
+		LOG.info(this.type+":"+this.ID+": SENDING "+numMessages+" messages");
+		Random rand = new Random();
+		int destination;
+		while(numMessages > 0){
+			destination = rand.nextInt(numNodes);
+			if(destination!=this.ID){
+				numMessages--;
+				sendData(new OverlayNodeSendsData(this.ID, destination));
+			}
+		}
 	}
 	
 	public void connectToMessagingNodes() {
@@ -57,8 +83,11 @@ public class MessagingNode extends Node implements Runnable {
 				TCPConnection con = new TCPConnection(socket, re.distance, recvQueue);
 				re.addTCPConnection(con);
 			}
+			registrySock.send(new NodeReportsOverlaySetupStatus(this.ID, true));
 		} catch(IOException e){
 			e.printStackTrace();
+			registrySock.send(new NodeReportsOverlaySetupStatus(this.ID, false));
+			//todo: terminate node?
 		}
 	}
 	

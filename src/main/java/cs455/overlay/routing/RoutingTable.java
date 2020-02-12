@@ -28,6 +28,10 @@ public class RoutingTable {
         return routingTable.entrySet();
     }
 
+    public Set<Integer> getDestinationIDs(){
+        return routingTable.keySet();
+    }
+
     public String toString(){
         return routingTable.toString();
     }

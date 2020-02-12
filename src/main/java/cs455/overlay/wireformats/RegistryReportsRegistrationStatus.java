@@ -28,7 +28,6 @@ public class RegistryReportsRegistrationStatus extends Message{
 		}
 
 
-		this.data = bout.toByteArray();
 	
 	}
 	

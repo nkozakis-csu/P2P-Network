@@ -4,6 +4,7 @@ import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.*;
+import jdk.internal.jline.internal.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,6 +19,7 @@ public class Registry extends Node implements Runnable{
 	
 	private ConnectedNode[] nodeMap;
 	private int numNodes = 0;
+	private int numReady = 0;
 	private int numRoutingEntries;
 	
 	public Registry(int port) {
@@ -43,14 +45,23 @@ public class Registry extends Node implements Runnable{
 				registerNode((OverlayNodeSendsRegistration) m);
 				break;
 			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
-                NodeReportsOverlaySetupStatus status = (NodeReportsOverlaySetupStatus) m;
+                NodeReportsOverlaySetupStatus nodeStatus = (NodeReportsOverlaySetupStatus) m;
+                boolean status = nodeStatus.getStatus();
+                int id = nodeStatus.getId();
+                if(!status){
+					LOG.warn("Node: "+id+" failed to setup overlay");
+				}
+                else{
+                	nodeMap[id].status = true;
+                	numReady++;
+                	if(numReady==numNodes)
+                		System.out.println("All Messaging Nodes are setup. Overlay is ready to start");
+				}
 		}
 	}
 	@Override
 	public void run(){
 		super.run();
-		
-	
 	}
 	
 	public void start(){
@@ -88,7 +99,11 @@ public class Registry extends Node implements Runnable{
 
 	}
 
-	public void startNetwork(){
+	public void startNetwork(int numMessages){
+		RegistryRequestsTaskInitiate initiateCommand = new RegistryRequestsTaskInitiate(numMessages);
+		for (int i = 0; i < numNodes; i++) {
+			nodeMap[i].con.send(initiateCommand);
+		}
 
 	}
 	
@@ -103,22 +118,25 @@ public class Registry extends Node implements Runnable{
 			if (command.startsWith("setup-overlay")){
 				String[] info = command.split(" ");
 				if (info.length>1){
-					LOG.info(Arrays.toString(info));
 					int numRoutingEntries = Integer.parseInt(info[1]);
 					registry.setupOverlay(numRoutingEntries);
 				}else{
-					System.out.println("Must add number of routing table entries after setup-overlay");
+					registry.setupOverlay(3);
 				}
 			}else if (command.equals("list-messaging-nodes")){
 				registry.listMessagingNodes();
 			}else if(command.equals("list-routing-tables")){
 				registry.listRoutingTables();
 			}else if(command.startsWith("start")){
-				registry.startNetwork();
+				String[] info = command.split(" ");
+				if (info.length>1){
+					registry.startNetwork(Integer.parseInt(info[1]));
+				}else{
+					registry.startNetwork(10);
+				}
 			}else{
-				System.out.println("Unknown command");
+				System.out.println("\n----Commands----\nsetup-overlay [Routing Table Size]\nlist-messaging-nodes\nlist-routing-tables\nstart\n");
 			}
-			
 			command = scanner.nextLine();
 		}
 		

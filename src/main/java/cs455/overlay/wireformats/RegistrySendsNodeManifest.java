@@ -23,7 +23,6 @@ public class RegistrySendsNodeManifest extends Message{
         for(Map.Entry<Integer, RoutingEntry> entry : rt.getEntrySet()){
             serializeEntry(entry.getValue());
         }
-        this.data = bout.toByteArray();
     }
 
     public RegistrySendsNodeManifest(byte[] b){

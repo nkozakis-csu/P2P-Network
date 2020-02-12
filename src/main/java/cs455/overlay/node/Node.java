@@ -3,10 +3,12 @@ package cs455.overlay.node;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.Message;
+import cs455.overlay.wireformats.OverlayNodeSendsData;
 import cs455.overlay.wireformats.Protocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,8 +57,24 @@ abstract class Node{
 			e.printStackTrace();
 		}
 	}
-	public void sendData(int index, Message m){
-		routingTable.get(index).con.send(m);
+	public void sendData(OverlayNodeSendsData m){
+		int sendID;
+		Set<Integer> destinations = routingTable.getDestinationIDs();
+		LOG.debug(this.ID+" end destination= "+m.destination);
+		if (destinations.contains(m.destination)){
+			sendID = m.destination;
+		}else{
+			sendID = this.ID;
+			for (Integer dest : routingTable.getDestinationIDs()) {
+				if (m.destination > dest) {
+					sendID = dest;
+				} else {
+					break;
+				}
+			}
+		}
+		LOG.debug(this.ID+" sending directly to "+sendID);
+		routingTable.get(sendID).con.send(m);
 	}
 	
 	public void forwardMessage(Message m, int id){
