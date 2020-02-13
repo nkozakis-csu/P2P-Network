@@ -23,6 +23,9 @@ public class MessagingNode extends Node implements Runnable {
 	private int port;
 	private int numNodes;
 	protected RoutingTable routingTable;
+	private int sendTracker;
+	private int receiveTracker;
+	private int relayTracker;
 	
 	public MessagingNode(String ip, int port){
 		super();
@@ -30,10 +33,14 @@ public class MessagingNode extends Node implements Runnable {
 		LOG.info(type+":"+this.ID+": messagingNode created");
 		this.ip = ip;
 		this.port = port;
+		this.receiveTracker = 0;
+		this.sendTracker = 0;
+		this.relayTracker = 0;
 	}
 	
 	@Override
 	void handleMessages(Message m) {
+		this.receiveTracker++;
 		switch(m.getProtocol()){
 			case REGISTRY_REPORTS_REGISTRATION_STATUS:
 				RegistryReportsRegistrationStatus status = (RegistryReportsRegistrationStatus) m;
@@ -44,6 +51,7 @@ public class MessagingNode extends Node implements Runnable {
 			case REGISTRY_SENDS_NODE_MANIFEST:
 				RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) m;
 				this.numNodes = manifest.numNodes;
+				this.ID = manifest.id;
 				routingTable = manifest.getRoutingTable();
 				this.connectToMessagingNodes();
 				break;
@@ -56,7 +64,6 @@ public class MessagingNode extends Node implements Runnable {
 				OverlayNodeSendsData data = (OverlayNodeSendsData) m;
 				if(data.destination == this.ID) handleData(data);
 				else {
-					data.writeData();
 					sendData(data);
 				}
 		}

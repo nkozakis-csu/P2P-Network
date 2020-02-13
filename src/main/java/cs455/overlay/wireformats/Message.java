@@ -35,7 +35,12 @@ public class Message {
 		this();
 		bin = new ByteArrayInputStream(b);
 		din = new DataInputStream(new BufferedInputStream(bin));
-		this.data = b;
+		try {
+			dout.write(b);
+			dout.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		this.protocol = p;
 	}
 	

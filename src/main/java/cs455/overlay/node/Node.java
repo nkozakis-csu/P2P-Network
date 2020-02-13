@@ -25,9 +25,6 @@ abstract class Node{
 	protected int ID;
 	protected String type = "node";
 	protected boolean terminate = false;
-	private int sendTracker = 0;
-	private int receiveTracker = 0;
-	private int relayTracker = 0;
 	protected int port = 0;
 	protected BlockingQueue<Message> recvQueue;
 	
@@ -40,7 +37,6 @@ abstract class Node{
 	
 	protected void listenThread(){
 		try {
-			LOG.debug(this.type+": listening");
 			ServerSocket serverSocket = new ServerSocket(port);
 			port = serverSocket.getLocalPort();
 			synchronized (this){

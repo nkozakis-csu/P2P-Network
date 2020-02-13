@@ -8,16 +8,14 @@ import jdk.internal.jline.internal.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class Registry extends Node implements Runnable{
 	
 	private static final Logger LOG = LogManager.getLogger(Registry.class);
 	
-	private ConnectedNode[] nodeMap;
+	private ArrayList<ConnectedNode> registeredNodes;
+	private ArrayDeque<Integer> freeIDs;
 	private int numNodes = 0;
 	private int numReady = 0;
 	private int numRoutingEntries;
@@ -27,13 +25,19 @@ public class Registry extends Node implements Runnable{
 		this.port = port;
 		LOG.info("Registry Created with ID "+this.ID);
 		type="Registry";
-		nodeMap = new ConnectedNode[128];
+		registeredNodes = new ArrayList<>();
+		freeIDs = new ArrayDeque<>();
+		for (int i = 0; i < 128; i++) {
+			freeIDs.add(i);
+		}
 	}
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
-		nodeMap[numNodes]= new ConnectedNode(numNodes, o.getSource(), o.ip, o.port);
-		LOG.info("registry added node id: "+nodeMap[numNodes].ID+" with address "+o.ip+":"+o.port);
-		o.getSource().send(new RegistryReportsRegistrationStatus(numNodes, numNodes+1));
+		int id = freeIDs.remove();
+		ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);
+		registeredNodes.add(conNode);
+		LOG.info("registry added node id: "+conNode.ID+" with address "+o.ip+":"+o.port);
+		conNode.con.send(new RegistryReportsRegistrationStatus(id, registeredNodes.size()));
 		numNodes++;
 	}
 	
@@ -50,9 +54,11 @@ public class Registry extends Node implements Runnable{
                 int id = nodeStatus.getId();
                 if(!status){
 					LOG.warn("Node: "+id+" failed to setup overlay");
+					//todo: something? remove node?
+					freeIDs.addFirst(id);
 				}
                 else{
-                	nodeMap[id].status = true;
+                	registeredNodes.get(id).status = true;
                 	numReady++;
                 	if(numReady==numNodes)
                 		System.out.println("All Messaging Nodes are setup. Overlay is ready to start");
@@ -71,26 +77,25 @@ public class Registry extends Node implements Runnable{
 	
 	public void setupOverlay(int numRoutingEntries){
 		this.numRoutingEntries = numRoutingEntries;
-		LOG.debug("SETUP OVERLAY");
-		for(int i=0; i<numNodes; i++){
-			ConnectedNode node = nodeMap[i];
+		for(int i=0; i<registeredNodes.size(); i++){
+			ConnectedNode node = registeredNodes.get(i);
+			node.ID = i;
 			RoutingTable rt = new RoutingTable();
 			for(int j=0; j<numRoutingEntries; j++){
 				int routeID = (int) ((i+Math.pow(2,j))%numNodes);
-				RoutingEntry entry = new RoutingEntry(routeID, (int) Math.pow(2,j), nodeMap[routeID].ip, nodeMap[routeID].port);
-				LOG.debug(entry.toString());
+				RoutingEntry entry = new RoutingEntry(routeID, (int) Math.pow(2,j), registeredNodes.get(routeID).ip, registeredNodes.get(routeID).port);
 				rt.add(entry);
 			}
 			LOG.debug(rt.toString());
 			node.routingTable = rt;
-			node.con.send(new RegistrySendsNodeManifest(rt, numNodes));
+			node.con.send(new RegistrySendsNodeManifest(rt, numNodes, node.ID));
 		}
 	}
 	
 	public void listMessagingNodes(){
 		System.out.println("Entries: ");
-		for(int i=0; i<numNodes; i++){
-			System.out.print(nodeMap[i].ID+",");
+		for (ConnectedNode node: registeredNodes) {
+			System.out.print(node.ID+", ");
 		}
 		System.out.println("");
 	}
@@ -101,8 +106,8 @@ public class Registry extends Node implements Runnable{
 
 	public void startNetwork(int numMessages){
 		RegistryRequestsTaskInitiate initiateCommand = new RegistryRequestsTaskInitiate(numMessages);
-		for (int i = 0; i < numNodes; i++) {
-			nodeMap[i].con.send(initiateCommand);
+		for (ConnectedNode node: registeredNodes) {
+			node.con.send(initiateCommand);
 		}
 
 	}

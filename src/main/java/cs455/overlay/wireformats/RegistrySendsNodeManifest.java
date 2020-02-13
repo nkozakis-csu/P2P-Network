@@ -13,13 +13,16 @@ public class RegistrySendsNodeManifest extends Message{
 
     private RoutingTable routingTable;
     public int numNodes;
+    public int id;
 
-    public RegistrySendsNodeManifest(RoutingTable rt, int numNodes){
+    public RegistrySendsNodeManifest(RoutingTable rt, int numNodes, int id){
         super(Protocol.REGISTRY_SENDS_NODE_MANIFEST);
         this.numNodes = numNodes;
+        this.id = id;
         this.routingTable = rt;
         try{
             dout.writeInt(numNodes);
+            dout.writeInt(id);
             dout.writeInt(rt.size());
         }catch(IOException e){
             e.printStackTrace();
@@ -34,6 +37,7 @@ public class RegistrySendsNodeManifest extends Message{
         routingTable = new RoutingTable();
         try {
             this.numNodes = din.readInt();
+            this.id = din.readInt();
             int numEntries = din.readInt();
             for(int i=0; i<numEntries; i++) {
                 int id = din.readInt();

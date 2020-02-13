@@ -26,7 +26,6 @@ public class OverlayNodeSendsData extends Message{
 
     public OverlayNodeSendsData(byte[] b){
         super(Protocol.OVERLAY_NODE_SENDS_DATA, b);
-        LOG.debug("Process bytes"+new String(b));
         try {
             this.source = din.readInt();
             this.destination = din.readInt();
