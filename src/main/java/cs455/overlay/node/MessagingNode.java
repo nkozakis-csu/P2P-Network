@@ -22,6 +22,7 @@ public class MessagingNode extends Node implements Runnable {
 	private String ip;
 	private int port;
 	private int numNodes;
+	protected RoutingTable routingTable;
 	
 	public MessagingNode(String ip, int port){
 		super();
@@ -42,6 +43,7 @@ public class MessagingNode extends Node implements Runnable {
 				break;
 			case REGISTRY_SENDS_NODE_MANIFEST:
 				RegistrySendsNodeManifest manifest = (RegistrySendsNodeManifest) m;
+				this.numNodes = manifest.numNodes;
 				routingTable = manifest.getRoutingTable();
 				this.connectToMessagingNodes();
 				break;
@@ -53,7 +55,10 @@ public class MessagingNode extends Node implements Runnable {
 			case OVERLAY_NODE_SENDS_DATA:
 				OverlayNodeSendsData data = (OverlayNodeSendsData) m;
 				if(data.destination == this.ID) handleData(data);
-				else sendData(data);
+				else {
+					data.writeData();
+					sendData(data);
+				}
 		}
 		LOG.debug(this.ID+": received message: "+m.toString());
 	}
@@ -61,17 +66,50 @@ public class MessagingNode extends Node implements Runnable {
 	public void handleData(OverlayNodeSendsData d){
 		LOG.info("RECEIVED DATA:", d.payload);
 	}
+	
+	public void sendData(OverlayNodeSendsData m){
+		int sendID;
+		LOG.debug(this.ID+" end destination= "+m.destination);
+		ArrayList<Integer> keys = routingTable.getKeys();
+		if (keys.contains(m.destination)){
+			sendID = m.destination;
+		}else{
+			sendID = this.ID;
+			for (Integer dest : routingTable.getKeys()) {
+				if (m.destination > dest) {
+					sendID = dest;
+				} else {
+					break;
+				}
+			}
+			if (sendID == this.ID){
+				sendID = keys.get(keys.size()-1);
+			}
+		}
+		LOG.debug(this.ID+" sending directly to "+sendID);
+		routingTable.get(sendID).con.send(m);
+	}
+	
+	public void forwardMessage(Message m, int id){
+		while(routingTable.size() == 0){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		routingTable.get(0).con.send(m);
+	}
 
 	public void initiateTask(int numMessages){
 		LOG.info(this.type+":"+this.ID+": SENDING "+numMessages+" messages");
 		Random rand = new Random();
 		int destination;
 		while(numMessages > 0){
-			destination = rand.nextInt(numNodes);
-			if(destination!=this.ID){
-				numMessages--;
-				sendData(new OverlayNodeSendsData(this.ID, destination));
-			}
+			destination = rand.nextInt(numNodes-1);
+			if (destination>=this.ID) destination++;
+			numMessages--;
+			sendData(new OverlayNodeSendsData(this.ID, destination));
 		}
 	}
 	

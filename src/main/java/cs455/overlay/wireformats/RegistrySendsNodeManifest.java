@@ -12,10 +12,14 @@ import java.util.Map;
 public class RegistrySendsNodeManifest extends Message{
 
     private RoutingTable routingTable;
+    public int numNodes;
 
-    public RegistrySendsNodeManifest(RoutingTable rt){
+    public RegistrySendsNodeManifest(RoutingTable rt, int numNodes){
         super(Protocol.REGISTRY_SENDS_NODE_MANIFEST);
+        this.numNodes = numNodes;
+        this.routingTable = rt;
         try{
+            dout.writeInt(numNodes);
             dout.writeInt(rt.size());
         }catch(IOException e){
             e.printStackTrace();
@@ -29,6 +33,7 @@ public class RegistrySendsNodeManifest extends Message{
         super(Protocol.REGISTRY_SENDS_NODE_MANIFEST, b);
         routingTable = new RoutingTable();
         try {
+            this.numNodes = din.readInt();
             int numEntries = din.readInt();
             for(int i=0; i<numEntries; i++) {
                 int id = din.readInt();

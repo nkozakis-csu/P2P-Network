@@ -83,7 +83,7 @@ public class Registry extends Node implements Runnable{
 			}
 			LOG.debug(rt.toString());
 			node.routingTable = rt;
-			node.con.send(new RegistrySendsNodeManifest(rt));
+			node.con.send(new RegistrySendsNodeManifest(rt, numNodes));
 		}
 	}
 	

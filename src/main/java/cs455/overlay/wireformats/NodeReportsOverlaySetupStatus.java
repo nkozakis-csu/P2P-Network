@@ -2,7 +2,7 @@ package cs455.overlay.wireformats;
 
 import java.io.IOException;
 
-public class NodeReportsOverlaySetupStatus extends Message{
+public class NodeReportsOverlaySetupStatus extends Message {
 
     private boolean status;
     private int id;
@@ -36,4 +36,10 @@ public class NodeReportsOverlaySetupStatus extends Message{
     public int getId(){
         return id;
     }
+    
+    @Override
+    public String toString(){
+        return String.format("{NodeReportsOverlaySetupStatus: status=%b, id=%d}", status, id);
+    }
+    
 }

@@ -38,7 +38,7 @@ public class TCPConnection{
     
     public void send(Message m){
         try {
-            LOG.debug("sending: "+new String(m.getBytes()));
+            LOG.debug("sending: "+m.toString());
             dataOut.write(m.getBytes());
             dataOut.flush();
         } catch (IOException e) {

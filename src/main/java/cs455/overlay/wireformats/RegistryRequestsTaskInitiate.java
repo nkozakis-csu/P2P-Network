@@ -29,4 +29,8 @@ public class RegistryRequestsTaskInitiate extends Message {
     public int getNumMessages(){
         return numMessages;
     }
+    
+    public String toString(){
+        return String.format("{RegistryRequestsTaskInitiate: numMessages=%d}",numMessages);
+    }
 }

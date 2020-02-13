@@ -1,19 +1,22 @@
 package cs455.overlay.routing;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import javafx.collections.transformation.SortedList;
+
+import java.util.*;
 
 public class RoutingTable {
 
     private HashMap<Integer, RoutingEntry> routingTable;
+    private ArrayList<Integer> keys;
 
     public RoutingTable(){
         routingTable = new HashMap<>();
+        keys = new ArrayList<>();
     }
 
     public void add(RoutingEntry r){
         routingTable.put(r.id, r);
+        keys.add(r.id);
     }
 
     public RoutingEntry get(int id){
@@ -28,8 +31,8 @@ public class RoutingTable {
         return routingTable.entrySet();
     }
 
-    public Set<Integer> getDestinationIDs(){
-        return routingTable.keySet();
+    public ArrayList<Integer> getKeys(){
+        return keys;
     }
 
     public String toString(){

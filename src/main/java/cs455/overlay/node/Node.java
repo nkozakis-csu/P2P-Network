@@ -32,7 +32,6 @@ abstract class Node{
 	protected BlockingQueue<Message> recvQueue;
 	
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
-	protected RoutingTable routingTable;
 	
 	public Node(){
 		this.ID = -1;
@@ -56,36 +55,6 @@ abstract class Node{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	public void sendData(OverlayNodeSendsData m){
-		int sendID;
-		Set<Integer> destinations = routingTable.getDestinationIDs();
-		LOG.debug(this.ID+" end destination= "+m.destination);
-		if (destinations.contains(m.destination)){
-			sendID = m.destination;
-		}else{
-			sendID = this.ID;
-			for (Integer dest : routingTable.getDestinationIDs()) {
-				if (m.destination > dest) {
-					sendID = dest;
-				} else {
-					break;
-				}
-			}
-		}
-		LOG.debug(this.ID+" sending directly to "+sendID);
-		routingTable.get(sendID).con.send(m);
-	}
-	
-	public void forwardMessage(Message m, int id){
-		while(routingTable.size() == 0){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		routingTable.get(0).con.send(m);
 	}
 	
 	abstract void handleMessages(Message m);
