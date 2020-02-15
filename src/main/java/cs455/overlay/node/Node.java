@@ -27,12 +27,14 @@ abstract class Node{
 	protected boolean terminate = false;
 	protected int port = 0;
 	protected BlockingQueue<Message> recvQueue;
+	protected LinkedList<Integer> assignedIDs;
 	
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
 	
 	public Node(){
 		this.ID = -1;
 		this.recvQueue = new LinkedBlockingQueue<>();
+		this.assignedIDs = new LinkedList<>();
 	}
 	
 	protected void listenThread(){
@@ -45,7 +47,7 @@ abstract class Node{
 			LOG.info(this.type+": setting port="+port);
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
-				LOG.info(String.format(this.type + ": Server accepted connection from: %s", recvSocket.getLocalAddress()));
+				LOG.debug(String.format(this.type + ": Server accepted connection from: %s", recvSocket.getLocalAddress()));
 				consIN.add(new TCPConnection(recvSocket, 0, recvQueue));
 			}
 		} catch (Exception e) {
@@ -74,6 +76,21 @@ abstract class Node{
 			wait();
 		}
 		return port;
+	}
+	
+	public void add(int id){
+		if (assignedIDs.size() ==0){
+			assignedIDs.add(id);
+		} else if ( assignedIDs.get(assignedIDs.size()-1) < id){
+			assignedIDs.add(id);
+		}else {
+			for (int i = 0; i < assignedIDs.size(); i++) {
+				if (assignedIDs.get(i) > id) {
+					assignedIDs.add(i, id);
+					break;
+				}
+			}
+		}
 	}
 	
 	public void run(){
