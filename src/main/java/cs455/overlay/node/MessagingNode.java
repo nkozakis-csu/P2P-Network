@@ -22,11 +22,11 @@ public class MessagingNode extends Node implements Runnable {
 	private String ip;
 	private int port;
 	protected RoutingTable routingTable;
-	private int sendTracker;
-	private int receiveTracker;
-	private int relayTracker;
-	private int sumReceive;
-	private int sumSent;
+	private int numSent;
+	private int numReceived;
+	private int numForwarded;
+	private long sumReceived;
+	private long sumSent;
 	
 	public MessagingNode(String ip, int port){
 		super();
@@ -34,10 +34,10 @@ public class MessagingNode extends Node implements Runnable {
 		LOG.info(type+":"+this.ID+": messagingNode created");
 		this.ip = ip;
 		this.port = port;
-		this.receiveTracker = 0;
-		this.sendTracker = 0;
-		this.relayTracker = 0;
-		this.sumReceive = 0;
+		this.numReceived = 0;
+		this.numSent = 0;
+		this.numForwarded = 0;
+		this.sumReceived = 0;
 		this.sumSent = 0;
 	}
 	
@@ -66,16 +66,20 @@ public class MessagingNode extends Node implements Runnable {
 				if(data.destination == this.ID)
 					handleData(data);
 				else {
-					this.relayTracker++;
+					this.numForwarded++;
 					sendData(data);
 				}
+				break;
+			case REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
+				registrySock.send(new OverlayNodeReportsTrafficSummary(this.ID,this.numSent, this.numForwarded, this.sumSent, this.numReceived, this.sumReceived));
+				break;
 		}
 		LOG.debug(this.ID+": received message: "+m.toString());
 	}
 
 	public void handleData(OverlayNodeSendsData d){
-		this.receiveTracker++;
-		this.sumReceive+=d.payload;
+		this.numReceived++;
+		this.sumReceived+=d.payload;
 		LOG.info("RECEIVED DATA:"+ d.payload);
 	}
 	
@@ -111,9 +115,10 @@ public class MessagingNode extends Node implements Runnable {
 			destination = assignedIDs.get(rand.nextInt(assignedIDs.size()));
 			numMessages--;
 			sendData(new OverlayNodeSendsData(this.ID, destination));
-			this.sendTracker++;
+			this.numSent++;
 		}
 		registrySock.send(new OverlayNodeReportsTaskFinished(this.ip, this.port, this.ID));
+		LOG.info("Finished Task");
 	}
 	
 	public void connectToMessagingNodes() {
@@ -154,7 +159,7 @@ public class MessagingNode extends Node implements Runnable {
 	}
 
 	public void printDiagnostics(){
-		System.out.println("ID: "+this.ID+"\nNum sent: "+this.sendTracker+"\nNum Received: "+this.receiveTracker+"\nNum Relayed: "+this.relayTracker);
+		System.out.println("ID: "+this.ID+"\nNum sent: "+this.numSent+"\nNum Received: "+this.numReceived+"\nNum Relayed: "+this.numForwarded);
 	}
 
 	public void exitOverlay(){

@@ -2,6 +2,7 @@ package cs455.overlay.node;
 
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
+import cs455.overlay.wireformats.OverlayNodeReportsTrafficSummary;
 
 public class ConnectedNode {
 	
@@ -11,6 +12,7 @@ public class ConnectedNode {
 	public int port;
 	public boolean status = false;
 	public RoutingTable routingTable;
+	public OverlayNodeReportsTrafficSummary summary;
 	
 	public ConnectedNode(int id, TCPConnection con){
 		this.ID = id;

@@ -23,7 +23,7 @@ public class RegistrySendsNodeManifest extends Message{
         try{
             dout.writeInt(assignedIDs.size());
             for(Integer i : assignedIDs){
-                dout.writeInt(i);
+                dout.writeByte(i);
             }
             dout.writeInt(rt.size());
             for(Map.Entry<Integer, RoutingEntry> entry : rt.getEntrySet()){
@@ -38,10 +38,11 @@ public class RegistrySendsNodeManifest extends Message{
     public RegistrySendsNodeManifest(byte[] b){
         super(Protocol.REGISTRY_SENDS_NODE_MANIFEST, b);
         routingTable = new RoutingTable();
+        this.assignedIDs = new LinkedList<>();
         try {
             int numIDs = din.readInt();
             for(int i=0; i<numIDs; i++){
-                assignedIDs.add(din.readInt());
+                assignedIDs.add((int)din.readByte());
             }
             int numEntries = din.readInt();
             for(int i=0; i<numEntries; i++) {
@@ -68,7 +69,6 @@ public class RegistrySendsNodeManifest extends Message{
         dout.writeInt(entry.ip.length());
         dout.write(entry.ip.getBytes());
         dout.writeInt(entry.port);
-        dout.flush();
     }
 
     @Override
@@ -86,6 +86,7 @@ public class RegistrySendsNodeManifest extends Message{
         list.add(1);
         list.add(2);
         RegistrySendsNodeManifest m = new RegistrySendsNodeManifest(rt, list);
+        System.out.println("BYTES: "+new String(m.getBytes()));
         System.out.println(m.toString());
         DataInputStream din = new DataInputStream( new BufferedInputStream(new ByteArrayInputStream(m.getBytes())));
         try {

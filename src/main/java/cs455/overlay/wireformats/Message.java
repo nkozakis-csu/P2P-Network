@@ -55,7 +55,7 @@ public class Message {
 			case REGISTRY_REPORTS_REGISTRATION_STATUS:
 				return new RegistryReportsRegistrationStatus(msg);
 			case OVERLAY_NODE_SENDS_DEREGISTRATION:
-				return null;
+				return new OverlayNodeSendsDeregistration(msg);
 			case REGISTRY_SENDS_NODE_MANIFEST:
 				return new RegistrySendsNodeManifest(msg);
 			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
@@ -64,6 +64,12 @@ public class Message {
 				return new RegistryRequestsTaskInitiate(msg);
 			case OVERLAY_NODE_SENDS_DATA:
 				return new OverlayNodeSendsData(msg);
+			case OVERLAY_NODE_REPORTS_TASK_FINISHED:
+				return new OverlayNodeReportsTaskFinished(msg);
+			case REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
+				return new RegistryRequestsTrafficSummary(msg);
+			case OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
+				return new OverlayNodeReportsTrafficSummary(msg);
 			default:
 				throw new Exception("Unknown packet protocol received : "+p);
 		}

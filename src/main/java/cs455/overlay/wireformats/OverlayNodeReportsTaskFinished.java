@@ -18,6 +18,7 @@ public class OverlayNodeReportsTaskFinished extends Message{
 			dout.writeBytes(ip);
 			dout.writeInt(port);
 			dout.writeInt(ID);
+			dout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

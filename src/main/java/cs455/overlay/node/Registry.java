@@ -15,6 +15,13 @@ public class Registry extends Node implements Runnable{
 	private ConnectedNode[] registeredNodes;
 	private LinkedList<Integer> freeIDs;
 	private int numReady = 0;
+	private int numFinished = 0;
+	private int numSummaries = 0;
+	private int totalSent = 0;
+	private int totalReceived = 0;
+	private int totalForwarded = 0;
+	private long totalSumSent = 0;
+	private long totalSumReceived = 0;
 	
 	public Registry(int port) {
 		super();
@@ -62,6 +69,40 @@ public class Registry extends Node implements Runnable{
                 	if(numReady==assignedIDs.size())
                 		System.out.println("All Messaging Nodes are setup. Overlay is ready to start");
 				}
+                break;
+			case OVERLAY_NODE_REPORTS_TASK_FINISHED:
+				OverlayNodeReportsTaskFinished finished = (OverlayNodeReportsTaskFinished) m;
+//				if (registeredNodes[finished.id].ip.equals(finished.ip))
+				numFinished++;
+//				else System.out.println(finished.ip);
+				if (numFinished >= assignedIDs.size()){
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					for(int i : assignedIDs){
+						registeredNodes[i].con.send(new RegistryRequestsTrafficSummary());
+					}
+				}
+				break;
+			case OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
+				OverlayNodeReportsTrafficSummary summary = (OverlayNodeReportsTrafficSummary) m;
+				registeredNodes[summary.id].summary = summary;
+				this.totalSent += summary.numSent;
+				this.totalReceived += summary.numReceived;
+				this.totalForwarded += summary.numForwarded;
+				this.totalSumReceived += summary.sumReceived;
+				this.totalSumSent += summary.sumSent;
+				if (numSummaries == 0){
+					System.out.println("Node ID  | sent | received | forwarded | Sum Sent | Sum Received");
+				}
+				numSummaries++;
+				System.out.println(summary.toString());
+				if (numSummaries == assignedIDs.size()){
+					System.out.println(String.format("Total    | %4d | %8d | %9d | %8d | %12d", totalSent, totalReceived, totalForwarded, totalSumSent, totalSumReceived));
+				}
+				break;
 		}
 	}
 	@Override
@@ -104,8 +145,8 @@ public class Registry extends Node implements Runnable{
 
 	public void startNetwork(int numMessages){
 		RegistryRequestsTaskInitiate initiateCommand = new RegistryRequestsTaskInitiate(numMessages);
-		for (ConnectedNode node: registeredNodes) {
-			node.con.send(initiateCommand);
+		for (int i : assignedIDs) {
+			registeredNodes[i].con.send(initiateCommand);
 		}
 
 	}

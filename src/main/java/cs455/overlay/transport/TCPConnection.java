@@ -38,7 +38,6 @@ public class TCPConnection{
     
     public void send(Message m){
         try {
-            LOG.debug("sending: "+m.toString());
             dataOut.write(m.getBytes());
             dataOut.flush();
         } catch (IOException e) {
@@ -50,30 +49,14 @@ public class TCPConnection{
         while (!terminate) {
             try {
                 Message m = Message.getMessage(dataIn);
-                if (m != null){
-                    m.setSource(this);
-                    recvQueue.add(m);
-                }
+                m.setSource(this);
+                recvQueue.add(m);
             }catch(EOFException e){
                 //do nothin
             } catch(Exception e){
                 e.printStackTrace();
             }
         }
-    }
-    
-    public DataInputStream getDataIN(){
-        return dataIn;
-    }
-    
-    public DataOutputStream getDataOut(){
-        return dataOut;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        LOG.warn("test");
-        LOG.debug("TESTING DEBUG");
-        LOG.error("ERROR");
     }
 
 }

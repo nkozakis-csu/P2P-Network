@@ -7,11 +7,12 @@ public class OverlayNodeReportsTrafficSummary extends Message {
 	public int id;
 	public int numSent;
 	public int numForwarded;
-	public int sumSent;
+	public long sumSent;
 	public int numReceived;
-	public int sumReceived;
+	public long sumReceived;
 	
-	public OverlayNodeReportsTrafficSummary(int id, int numSent, int numForwarded, int sumSent, int numReceived, int sumReceived){
+	public OverlayNodeReportsTrafficSummary(int id, int numSent, int numForwarded, long sumSent, int numReceived, long sumReceived){
+		super(Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY);
 		this.id = id;
 		this.numSent = numSent;
 		this.numForwarded = numForwarded;
@@ -22,28 +23,31 @@ public class OverlayNodeReportsTrafficSummary extends Message {
 			dout.writeInt(id);
 			dout.writeInt(numSent);
 			dout.writeInt(numForwarded);
-			dout.writeInt(sumSent);
+			dout.writeLong(sumSent);
 			dout.writeInt(numReceived);
-			dout.writeInt(sumReceived);
+			dout.writeLong(sumReceived);
+			dout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public OverlayNodeReportsTrafficSummary(byte[] b){
+		super(Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY, b);
 		try {
 			this.id = din.readInt();
 			this.numSent = din.readInt();
 			this.numForwarded = din.readInt();
-			this.sumSent = din.readInt();
+			this.sumSent = din.readLong();
 			this.numReceived = din.readInt();
-			this.sumReceived = din.readInt();
+			this.sumReceived = din.readLong();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public String toString(){
-		return String.format("Node %d | %d | %d | %d | %d | %d", id, numSent, numReceived, numForwarded, sumSent, sumReceived);
+		return String.format("Node %3d | %d | %d | %d | %d | %d", id, numSent, numReceived, numForwarded, sumSent, sumReceived);
 	}
+	
 }
