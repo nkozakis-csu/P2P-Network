@@ -6,7 +6,9 @@ import cs455.overlay.wireformats.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Scanner;
 
 public class Registry extends Node implements Runnable{
 	
@@ -44,7 +46,7 @@ public class Registry extends Node implements Runnable{
 		LOG.info("registry added node id: "+conNode.ID+" with address "+o.ip+":"+o.port);
 		conNode.con.send(new RegistryReportsRegistrationStatus(id, assignedIDs.size()));
 	}
-	
+
 	public void addSortedID(int id){
 		if (assignedIDs.size() ==0){
 			assignedIDs.add(id);
@@ -59,7 +61,7 @@ public class Registry extends Node implements Runnable{
 			}
 		}
 	}
-	
+
 	private void deregisterNode(OverlayNodeSendsDeregistration m){
 	}
 	
@@ -116,12 +118,12 @@ public class Registry extends Node implements Runnable{
 				this.totalSumReceived += summary.sumReceived;
 				this.totalSumSent += summary.sumSent;
 				if (numSummaries == 0){
-					System.out.println("Node ID  | sent | received | forwarded |   Sum Sent   | Sum Received");
+					System.out.println("Node ID  | sent | received | forwarded |     Sum Sent     |     Sum Received");
 				}
 				numSummaries++;
 				System.out.println(summary.toString());
 				if (numSummaries == assignedIDs.size()){
-					System.out.println(String.format("\nTotal    | %4d | %8d | %9d | %12d | %12d", totalSent, totalReceived, totalForwarded, totalSumSent, totalSumReceived));
+					System.out.println(String.format("\nTotal    | %4d | %8d | %9d | %16d | %16d", totalSent, totalReceived, totalForwarded, totalSumSent, totalSumReceived));
 				}
 				break;
 			default:
@@ -208,7 +210,7 @@ public class Registry extends Node implements Runnable{
 			command = scanner.nextLine();
 		}
 		registry.end();
-		
+
 	}
 	
 }

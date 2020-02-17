@@ -12,12 +12,10 @@ public class TCPConnection{
     private static final Logger LOG = LogManager.getLogger(TCPConnection.class);
 
     private Socket sock;
-    private int recvNum = 0;
     protected int distance;
     private DataOutputStream dataOut;
     private DataInputStream dataIn;
     private boolean terminate = false;
-    private int port;
     private Thread recvThread;
     private BlockingQueue<Message> recvQueue;
 

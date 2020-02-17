@@ -1,7 +1,5 @@
 package cs455.overlay.routing;
 
-import javafx.collections.transformation.SortedList;
-
 import java.util.*;
 
 public class RoutingTable {

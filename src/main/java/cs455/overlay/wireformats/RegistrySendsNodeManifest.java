@@ -2,12 +2,9 @@ package cs455.overlay.wireformats;
 
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
-import jdk.internal.misc.JavaSecurityAccess;
-import sun.awt.image.ImageWatched;
 
+import java.io.IOException;
 import java.io.*;
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -75,7 +72,7 @@ public class RegistrySendsNodeManifest extends Message{
     public String toString() {
         return this.routingTable.toString();
     }
-    
+
     public static void main(String[] args) {
         RoutingTable rt = new RoutingTable();
         rt.add(new RoutingEntry(0,1,"test", 1));

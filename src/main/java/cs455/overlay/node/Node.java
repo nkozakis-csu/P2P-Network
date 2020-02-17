@@ -1,23 +1,15 @@
 package cs455.overlay.node;
 
-import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.Message;
-import cs455.overlay.wireformats.OverlayNodeSendsData;
-import cs455.overlay.wireformats.Protocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.awt.*;
-import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 abstract class Node{
 	
@@ -31,7 +23,7 @@ abstract class Node{
 	protected LinkedList<Integer> assignedIDs;
 	protected Thread listener;
 	protected Thread receiver;
-	
+
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
 	
 	public Node(){
@@ -86,8 +78,9 @@ abstract class Node{
 		this.terminate = true;
 		this.listener.interrupt();
 		this.receiver.interrupt();
+		System.exit(0);
 	}
-	
+
 	public void run(){
 		LOG.info(this.type +":"+this.ID+": node started");
 		listener = new Thread(this::listenThread);
