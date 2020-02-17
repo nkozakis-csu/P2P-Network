@@ -58,5 +58,10 @@ public class TCPConnection{
             }
         }
     }
+    
+    public void end(){
+        this.terminate = true;
+        this.recvThread.interrupt();
+    }
 
 }

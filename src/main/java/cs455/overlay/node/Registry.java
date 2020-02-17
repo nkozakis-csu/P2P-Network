@@ -38,11 +38,29 @@ public class Registry extends Node implements Runnable{
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
 		int id = freeIDs.remove(0);
-		assignedIDs.add(id);
+		this.addSortedID(id);
 		ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);
 		registeredNodes[id]=conNode;
 		LOG.info("registry added node id: "+conNode.ID+" with address "+o.ip+":"+o.port);
 		conNode.con.send(new RegistryReportsRegistrationStatus(id, assignedIDs.size()));
+	}
+	
+	public void addSortedID(int id){
+		if (assignedIDs.size() ==0){
+			assignedIDs.add(id);
+		} else if ( assignedIDs.get(assignedIDs.size()-1) < id){
+			assignedIDs.add(id);
+		}else {
+			for (int i = 0; i < assignedIDs.size(); i++) {
+				if (assignedIDs.get(i) > id) {
+					assignedIDs.add(i, id);
+					break;
+				}
+			}
+		}
+	}
+	
+	private void deregisterNode(OverlayNodeSendsDeregistration m){
 	}
 	
 	@Override
@@ -51,6 +69,9 @@ public class Registry extends Node implements Runnable{
 		switch(m.getProtocol()) {
 			case OVERLAY_NODE_SENDS_REGISTRATION:
 				registerNode((OverlayNodeSendsRegistration) m);
+				break;
+			case OVERLAY_NODE_SENDS_DEREGISTRATION:
+				deregisterNode((OverlayNodeSendsDeregistration) m);
 				break;
 			case NODE_REPORTS_OVERLAY_SETUP_STATUS:
                 NodeReportsOverlaySetupStatus nodeStatus = (NodeReportsOverlaySetupStatus) m;
@@ -77,7 +98,7 @@ public class Registry extends Node implements Runnable{
 //				else System.out.println(finished.ip);
 				if (numFinished >= assignedIDs.size()){
 					try {
-						Thread.sleep(3000);
+						Thread.sleep(5000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -95,14 +116,16 @@ public class Registry extends Node implements Runnable{
 				this.totalSumReceived += summary.sumReceived;
 				this.totalSumSent += summary.sumSent;
 				if (numSummaries == 0){
-					System.out.println("Node ID  | sent | received | forwarded | Sum Sent | Sum Received");
+					System.out.println("Node ID  | sent | received | forwarded |   Sum Sent   | Sum Received");
 				}
 				numSummaries++;
 				System.out.println(summary.toString());
 				if (numSummaries == assignedIDs.size()){
-					System.out.println(String.format("Total    | %4d | %8d | %9d | %8d | %12d", totalSent, totalReceived, totalForwarded, totalSumSent, totalSumReceived));
+					System.out.println(String.format("\nTotal    | %4d | %8d | %9d | %12d | %12d", totalSent, totalReceived, totalForwarded, totalSumSent, totalSumReceived));
 				}
 				break;
+			default:
+				LOG.error("UNKNOWN PROTOCOL:"+ m.getProtocol());
 		}
 	}
 	@Override
@@ -172,6 +195,7 @@ public class Registry extends Node implements Runnable{
 			}else if(command.equals("list-routing-tables")){
 				registry.listRoutingTables();
 			}else if(command.startsWith("start")){
+				registry.listener.interrupt();
 				String[] info = command.split(" ");
 				if (info.length>1){
 					registry.startNetwork(Integer.parseInt(info[1]));
@@ -183,6 +207,7 @@ public class Registry extends Node implements Runnable{
 			}
 			command = scanner.nextLine();
 		}
+		registry.end();
 		
 	}
 	

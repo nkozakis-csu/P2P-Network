@@ -43,7 +43,7 @@ public class MessagingNode extends Node implements Runnable {
 	
 	@Override
 	void handleMessages(Message m) {
-		switch(m.getProtocol()){
+		switch(m.getProtocol()) {
 			case REGISTRY_REPORTS_REGISTRATION_STATUS:
 				RegistryReportsRegistrationStatus status = (RegistryReportsRegistrationStatus) m;
 				this.ID = status.id;
@@ -63,9 +63,10 @@ public class MessagingNode extends Node implements Runnable {
 				break;
 			case OVERLAY_NODE_SENDS_DATA:
 				OverlayNodeSendsData data = (OverlayNodeSendsData) m;
-				if(data.destination == this.ID)
-					handleData(data);
-				else {
+				if (data.destination == this.ID){
+					this.numReceived++;
+					this.sumReceived += data.payload;
+				}else {
 					this.numForwarded++;
 					sendData(data);
 				}
@@ -75,12 +76,6 @@ public class MessagingNode extends Node implements Runnable {
 				break;
 		}
 		LOG.debug(this.ID+": received message: "+m.toString());
-	}
-
-	public void handleData(OverlayNodeSendsData d){
-		this.numReceived++;
-		this.sumReceived+=d.payload;
-		LOG.info("RECEIVED DATA:"+ d.payload);
 	}
 	
 	public void sendData(OverlayNodeSendsData m){
@@ -103,7 +98,6 @@ public class MessagingNode extends Node implements Runnable {
 			}
 		}
 		LOG.debug(this.ID+" sending directly to "+sendID);
-		this.sumSent+=m.payload;
 		routingTable.get(sendID).con.send(m);
 	}
 	
@@ -114,7 +108,9 @@ public class MessagingNode extends Node implements Runnable {
 		while(numMessages > 0){
 			destination = assignedIDs.get(rand.nextInt(assignedIDs.size()));
 			numMessages--;
-			sendData(new OverlayNodeSendsData(this.ID, destination));
+			OverlayNodeSendsData m = new OverlayNodeSendsData(this.ID, destination);
+			sendData(m);
+			this.sumSent+=m.payload;
 			this.numSent++;
 		}
 		registrySock.send(new OverlayNodeReportsTaskFinished(this.ip, this.port, this.ID));
@@ -163,7 +159,10 @@ public class MessagingNode extends Node implements Runnable {
 	}
 
 	public void exitOverlay(){
-		this.terminate = true;
+		super.end();
+		for(Map.Entry<Integer, RoutingEntry> entry: routingTable.getEntrySet()){
+			entry.getValue().con.end();
+		}
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -177,7 +176,7 @@ public class MessagingNode extends Node implements Runnable {
 			if (command.equals("print-counters-and-diagnostic")){
 				 node.printDiagnostics();
 			}else{
-				System.out.println("Unknown command");
+				System.out.println("\n----Commands----\nprint-counters-and-diagnostic\nexit-overlay");
 			}
 			
 			command = scanner.nextLine();

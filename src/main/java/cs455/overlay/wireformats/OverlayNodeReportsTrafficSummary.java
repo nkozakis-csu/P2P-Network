@@ -47,7 +47,7 @@ public class OverlayNodeReportsTrafficSummary extends Message {
 	}
 	
 	public String toString(){
-		return String.format("Node %3d | %d | %d | %d | %d | %d", id, numSent, numReceived, numForwarded, sumSent, sumReceived);
+		return String.format("Node %3d | %4d | %8d | %9d | %12d | %12d", id, numSent, numReceived, numForwarded, sumSent, sumReceived);
 	}
 	
 }
