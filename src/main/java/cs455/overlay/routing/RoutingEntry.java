@@ -21,6 +21,6 @@ public class RoutingEntry {
     }
 
     public String toString(){
-        return String.format("[Entry: id=%d distance=%d ip=%s port=%d", id, distance, ip, port);
+        return String.format("{Entry: id=%d distance=%d ip=%s port=%d}", id, distance, ip, port);
     }
 }

@@ -28,7 +28,7 @@ public class Registry extends Node implements Runnable{
 	public Registry(int port) {
 		super();
 		LOG.info("Registry Created with ID "+this.ID);
-		this.port = port;
+		this.listenPort = port;
 		type="Registry";
 		registeredNodes = new ConnectedNode[128];
 		freeIDs = new LinkedList<>();
@@ -39,11 +39,11 @@ public class Registry extends Node implements Runnable{
 	}
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
-//		for(int i : assignedIDs){
-//			if (registeredNodes[i].ip == o.ip && registeredNodes[i].port = o.port){
-//				o.getSource().getSourceIP()
-//			}
-//		}
+		for(int i : assignedIDs){
+			if (registeredNodes[i].ip == o.ip && registeredNodes[i].port == o.port){
+				registeredNodes[i].con = o.getSource();
+			}
+		}
 		int id = freeIDs.remove(0);
 		this.addSortedID(id);
 		ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);
@@ -163,13 +163,23 @@ public class Registry extends Node implements Runnable{
 	
 	public void listMessagingNodes(){
 		System.out.println("Entries: ");
-		for (ConnectedNode node: registeredNodes) {
-			System.out.print(node.ID+", ");
+		for (int i: assignedIDs) {
+			System.out.print(i+" ");
 		}
 		System.out.println("");
 	}
 
 	public void listRoutingTables(){
+		System.out.println("Routing Tables");
+		for(int i : assignedIDs){
+			System.out.println("\nNode "+i);
+			if (registeredNodes[i].routingTable == null){
+				System.out.println("Routing tables not setup yet");
+				break;
+			}
+			System.out.println(registeredNodes[i].routingTable.toString());
+		}
+		System.out.println("");
 
 	}
 

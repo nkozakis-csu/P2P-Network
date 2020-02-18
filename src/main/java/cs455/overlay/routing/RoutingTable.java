@@ -34,6 +34,10 @@ public class RoutingTable {
     }
 
     public String toString(){
-        return routingTable.toString();
+        String ret = "";
+        for(int k : keys){
+            ret += routingTable.get(k).toString() + '\n';
+        }
+        return ret;
     }
 }

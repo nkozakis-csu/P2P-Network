@@ -18,11 +18,12 @@ abstract class Node{
 	protected int ID;
 	protected String type = "node";
 	protected boolean terminate = false;
-	protected int port = 0;
+	protected int listenPort = 0;
 	protected BlockingQueue<Message> recvQueue;
 	protected LinkedList<Integer> assignedIDs;
 	protected Thread listener;
 	protected Thread receiver;
+	protected String listenAddress;
 
 	protected ArrayList<TCPConnection> consIN = new ArrayList<>();
 	
@@ -34,12 +35,13 @@ abstract class Node{
 	
 	protected void listenThread(){
 		try {
-			ServerSocket serverSocket = new ServerSocket(port);
-			port = serverSocket.getLocalPort();
+			ServerSocket serverSocket = new ServerSocket(listenPort);
+			listenPort = serverSocket.getLocalPort();
+			listenAddress = serverSocket.getInetAddress().getHostAddress();
 			synchronized (this){
 				notifyAll();
 			}
-			LOG.info(this.type+": Listening on "+serverSocket.getLocalSocketAddress() + ":"+port);
+			LOG.info(this.type+": Listening on "+listenAddress + ":"+listenPort);
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
 				consIN.add(new TCPConnection(recvSocket, 0, recvQueue));
@@ -67,10 +69,10 @@ abstract class Node{
 	}
 	
 	public synchronized int getPort() throws InterruptedException {
-		while (this.port == 0) {
+		while (this.listenPort == 0) {
 			wait();
 		}
-		return port;
+		return listenPort;
 	}
 	
 	public void end(){

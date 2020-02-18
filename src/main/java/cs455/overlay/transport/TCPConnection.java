@@ -31,7 +31,6 @@ public class TCPConnection{
             e.printStackTrace();
         }
         this.recvThread.start();
-        System.out.println(getDestIP()+", "+getSourceIP());
     }
     
     public void send(Message m){

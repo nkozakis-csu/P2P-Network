@@ -16,8 +16,8 @@ public class MessagingNode extends Node implements Runnable {
 	
 	private static final Logger LOG = LogManager.getLogger(MessagingNode.class);
 	private TCPConnection registrySock;
-	private String ip;
-	private int port;
+	private String registryIP;
+	private int registryPort;
 	protected RoutingTable routingTable;
 	private int numSent;
 	private int numReceived;
@@ -25,12 +25,12 @@ public class MessagingNode extends Node implements Runnable {
 	private long sumReceived;
 	private long sumSent;
 	
-	public MessagingNode(String ip, int port){
+	public MessagingNode(String registryIP, int registryPort){
 		super();
 		this.type="Messaging Node";
 		LOG.info(type+":"+this.ID+": messagingNode created");
-		this.ip = ip;
-		this.port = port;
+		this.registryIP = registryIP;
+		this.registryPort = registryPort;
 		this.numReceived = 0;
 		this.numSent = 0;
 		this.numForwarded = 0;
@@ -110,7 +110,7 @@ public class MessagingNode extends Node implements Runnable {
 			this.sumSent+=m.payload;
 			this.numSent++;
 		}
-		registrySock.send(new OverlayNodeReportsTaskFinished(this.ip, this.port, this.ID));
+		registrySock.send(new OverlayNodeReportsTaskFinished(this.listenAddress, this.listenPort, this.ID));
 		LOG.info("Finished Task");
 	}
 	
@@ -134,7 +134,7 @@ public class MessagingNode extends Node implements Runnable {
 		try {
 			Socket socket = new Socket(ip, port);
 			registrySock = new TCPConnection(socket, 0, recvQueue);
-			registrySock.send(new OverlayNodeSendsRegistration(registrySock.getSourceIP(), this.getPort()));
+			registrySock.send(new OverlayNodeSendsRegistration(this.listenAddress, this.getPort()));
 			LOG.info(this.ID+": sending registration");
 		} catch(Exception e){
 			e.printStackTrace();
@@ -143,7 +143,7 @@ public class MessagingNode extends Node implements Runnable {
 	@Override
 	public void run(){
 		super.run();
-		this.connectToRegistry(this.ip, this.port);
+		this.connectToRegistry(this.registryIP, this.registryPort);
 	}
 	
 	public void start(){
