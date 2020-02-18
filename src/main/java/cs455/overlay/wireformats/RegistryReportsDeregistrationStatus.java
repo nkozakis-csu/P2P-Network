@@ -2,28 +2,25 @@ package cs455.overlay.wireformats;
 
 import java.io.IOException;
 
-public class RegistryReportsDeregistationStatus extends Message{
+public class RegistryReportsDeregistrationStatus extends Message{
 	
-	public int id;
 	public boolean status;
 	
-	public RegistryReportsDeregistationStatus(int id, boolean status){
+	public RegistryReportsDeregistrationStatus(boolean status){
 		super(Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS);
-		this.id = id;
 		this.status = status;
 		try {
-			dout.writeInt(id);
 			dout.writeBoolean(status);
+			dout.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
 	}
 	
-	public RegistryReportsDeregistationStatus(byte[] b){
+	public RegistryReportsDeregistrationStatus(byte[] b){
 		super(Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS, b);
 		try {
-			this.id = din.readInt();
 			this.status = din.readBoolean();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -31,6 +28,6 @@ public class RegistryReportsDeregistationStatus extends Message{
 	}
 	
 	public String toString(){
-		return String.format("{RegistryReportsDeregistrationStatus: id=%d, status=%b}", id, status);
+		return String.format("{RegistryReportsDeregistrationStatus: status=%b}", status);
 	}
 }

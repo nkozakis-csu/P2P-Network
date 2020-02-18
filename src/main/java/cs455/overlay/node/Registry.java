@@ -40,18 +40,18 @@ public class Registry extends Node implements Runnable{
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
 		boolean fail = false;
-		if (!(o.getSource().getSourceIP().equals(o.ip))){
-			System.out.println("Node IP mismatch error: "+o.getSource().getSourceIP()+" != "+o.ip);
-			fail = true;
-		}else{
-			for(int i : assignedIDs){
-				if( (registeredNodes[i].ip.equals(o.ip) && registeredNodes[i].port == o.port)){
-					fail = true;
-					System.out.println("Node already registered error");
-					o.getSource().end();
-				}
-			}
-		}
+//		if (!(o.getSource().getSourceIP().equals(o.ip))){
+//			System.out.println("Node IP mismatch error: "+o.getSource().getSourceIP()+" != "+o.ip);
+//			fail = true;
+//		}else{
+//			for(int i : assignedIDs){
+//				if( (registeredNodes[i].ip.equals(o.ip) && registeredNodes[i].port == o.port)){
+//					fail = true;
+//					System.out.println("Node already registered error");
+//					o.getSource().end();
+//				}
+//			}
+//		}
 		if (!fail) {
 			int id = freeIDs.remove(0);
 			this.addSortedID(id);
@@ -78,6 +78,17 @@ public class Registry extends Node implements Runnable{
 	}
 
 	private void deregisterNode(OverlayNodeSendsDeregistration m){
+		m.getSource().send(new RegistryReportsDeregistrationStatus(true));
+		for(int id: assignedIDs){
+			if(registeredNodes[id].port == m.port){
+				this.freeIDs.addFirst(id);
+				this.assignedIDs.remove(new Integer(id));
+				this.registeredNodes[id] = null;
+				System.out.println("deregistered node: "+id+" from ip: "+m.ip + ", port:"+m.port);
+				break;
+			}
+		}
+
 	}
 	
 	@Override
@@ -98,7 +109,7 @@ public class Registry extends Node implements Runnable{
 					LOG.warn("Node: "+id+" failed to setup overlay");
 					//todo: something? remove node?
 					freeIDs.addFirst(id);
-					assignedIDs.remove(id);
+					assignedIDs.remove(new Integer(id));
 					registeredNodes[id] = null;
 				}
                 else{

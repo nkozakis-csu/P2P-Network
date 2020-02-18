@@ -5,6 +5,7 @@ import cs455.overlay.wireformats.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -37,7 +38,7 @@ abstract class Node{
 		try {
 			ServerSocket serverSocket = new ServerSocket(listenPort);
 			listenPort = serverSocket.getLocalPort();
-			listenAddress = serverSocket.getInetAddress().getHostAddress();
+			listenAddress = InetAddress.getLocalHost().getHostAddress();
 			synchronized (this){
 				notifyAll();
 			}

@@ -70,6 +70,8 @@ public class Message {
 				return new RegistryRequestsTrafficSummary(msg);
 			case OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
 				return new OverlayNodeReportsTrafficSummary(msg);
+			case REGISTRY_REPORTS_DEREGISTRATION_STATUS:
+				return new RegistryReportsDeregistrationStatus(msg);
 			default:
 				throw new Exception("Unknown packet protocol received : "+p);
 		}

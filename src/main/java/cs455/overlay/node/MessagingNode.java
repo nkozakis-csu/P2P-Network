@@ -36,7 +36,6 @@ public class MessagingNode extends Node implements Runnable {
 		this.numForwarded = 0;
 		this.sumReceived = 0;
 		this.sumSent = 0;
-		this.listenPort = 49999;
 	}
 	
 	@Override
@@ -71,6 +70,16 @@ public class MessagingNode extends Node implements Runnable {
 				break;
 			case REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
 				registrySock.send(new OverlayNodeReportsTrafficSummary(this.ID,this.numSent, this.numForwarded, this.sumSent, this.numReceived, this.sumReceived));
+				break;
+			case REGISTRY_REPORTS_DEREGISTRATION_STATUS:
+				RegistryReportsDeregistrationStatus d = (RegistryReportsDeregistrationStatus) m;
+				if (d.status) {
+					super.end();
+					System.out.println("Exited Overlay successfully");
+				} else {
+					super.end();
+					System.out.println("Exited Overlay unsuccessfully");
+				}
 				break;
 		}
 		LOG.debug(this.ID+": received message: "+m.toString());
@@ -157,9 +166,11 @@ public class MessagingNode extends Node implements Runnable {
 	}
 
 	public void exitOverlay(){
-		super.end();
-		for(Map.Entry<Integer, RoutingEntry> entry: routingTable.getEntrySet()){
-			entry.getValue().con.end();
+		registrySock.send(new OverlayNodeSendsDeregistration(this.listenAddress, this.listenPort));
+		if (routingTable != null) {
+			for (Map.Entry<Integer, RoutingEntry> entry : routingTable.getEntrySet()) {
+				entry.getValue().con.end();
+			}
 		}
 	}
 	
