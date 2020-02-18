@@ -39,6 +39,11 @@ public class Registry extends Node implements Runnable{
 	}
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
+//		for(int i : assignedIDs){
+//			if (registeredNodes[i].ip == o.ip && registeredNodes[i].port = o.port){
+//				o.getSource().getSourceIP()
+//			}
+//		}
 		int id = freeIDs.remove(0);
 		this.addSortedID(id);
 		ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);

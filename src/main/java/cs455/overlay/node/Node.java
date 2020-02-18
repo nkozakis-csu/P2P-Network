@@ -39,10 +39,9 @@ abstract class Node{
 			synchronized (this){
 				notifyAll();
 			}
-			LOG.info(this.type+": setting port="+port);
+			LOG.info(this.type+": Listening on "+serverSocket.getLocalSocketAddress() + ":"+port);
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
-				LOG.debug(String.format(this.type + ": Server accepted connection from: %s", recvSocket.getLocalAddress()));
 				consIN.add(new TCPConnection(recvSocket, 0, recvQueue));
 			}
 			System.out.println("ending Listen Thread");
@@ -60,11 +59,11 @@ abstract class Node{
 			try {
 				message = recvQueue.take();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
 			if (message != null)
 				this.handleMessages(message);
 		}
+		LOG.info("recv thread ending");
 	}
 	
 	public synchronized int getPort() throws InterruptedException {

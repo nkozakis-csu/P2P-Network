@@ -134,7 +134,7 @@ public class MessagingNode extends Node implements Runnable {
 		try {
 			Socket socket = new Socket(ip, port);
 			registrySock = new TCPConnection(socket, 0, recvQueue);
-			registrySock.send(new OverlayNodeSendsRegistration("localhost", this.getPort()));
+			registrySock.send(new OverlayNodeSendsRegistration(registrySock.getSourceIP(), this.getPort()));
 			LOG.info(this.ID+": sending registration");
 		} catch(Exception e){
 			e.printStackTrace();

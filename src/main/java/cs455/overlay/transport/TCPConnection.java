@@ -23,7 +23,6 @@ public class TCPConnection{
         this.sock = socket;
         this.distance = distance;
         this.recvQueue = queue;
-//        port = this.sock.getPort();
         this.recvThread = new Thread(this::recvPopper);
         try {
             this.dataIn = new DataInputStream(sock.getInputStream());
@@ -32,6 +31,7 @@ public class TCPConnection{
             e.printStackTrace();
         }
         this.recvThread.start();
+        System.out.println(getDestIP()+", "+getSourceIP());
     }
     
     public void send(Message m){
@@ -55,6 +55,14 @@ public class TCPConnection{
                 e.printStackTrace();
             }
         }
+    }
+
+    public String getDestIP(){
+        return sock.getInetAddress().toString();
+    }
+
+    public String getSourceIP(){
+        return sock.getLocalAddress().toString();
     }
     
     public void end(){
