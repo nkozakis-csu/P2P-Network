@@ -37,8 +37,8 @@ abstract class Node{
 	protected void listenThread(){
 		try {
 			ServerSocket serverSocket = new ServerSocket(listenPort);
-			listenPort = serverSocket.getLocalPort();
-			listenAddress = InetAddress.getLocalHost().getHostAddress();
+			this.listenPort = serverSocket.getLocalPort();
+			this.listenAddress = InetAddress.getLocalHost().getHostAddress();
 			synchronized (this){
 				notifyAll();
 			}

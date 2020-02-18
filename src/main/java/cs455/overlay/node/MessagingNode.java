@@ -6,7 +6,6 @@ import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.wireformats.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -28,7 +27,7 @@ public class MessagingNode extends Node implements Runnable {
 	public MessagingNode(String registryIP, int registryPort){
 		super();
 		this.type="Messaging Node";
-		LOG.info(type+":"+this.ID+": messagingNode created");
+		System.out.println("Messaging Node created");
 		this.registryIP = registryIP;
 		this.registryPort = registryPort;
 		this.numReceived = 0;
@@ -109,7 +108,7 @@ public class MessagingNode extends Node implements Runnable {
 	}
 	
 	public void initiateTask(int numMessages){
-		LOG.info(this.type+":"+this.ID+": SENDING "+numMessages+" messages");
+		System.out.println(this.type+":"+this.ID+": SENDING "+numMessages+" messages");
 		Random rand = new Random();
 		int destination;
 		while(numMessages > 0){
@@ -121,7 +120,7 @@ public class MessagingNode extends Node implements Runnable {
 			this.numSent++;
 		}
 		registrySock.send(new OverlayNodeReportsTaskFinished(this.listenAddress, this.listenPort, this.ID));
-		LOG.info("Finished Task");
+		System.out.println("Finished Task");
 	}
 	
 	public void connectToMessagingNodes() {
@@ -145,7 +144,7 @@ public class MessagingNode extends Node implements Runnable {
 			Socket socket = new Socket(ip, port);
 			registrySock = new TCPConnection(socket, 0, recvQueue);
 			registrySock.send(new OverlayNodeSendsRegistration(this.listenAddress, this.getPort()));
-			LOG.info(this.ID+": sending registration");
+			System.out.println("Sending registration");
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -191,19 +190,6 @@ public class MessagingNode extends Node implements Runnable {
 			command = scanner.nextLine();
 		}
 		node.exitOverlay();
-		
-//		LOG.debug("STARTING");
-//		System.out.println("TEST");
-//		Registry r = new Registry();
-//		r.start();
-//		int port = r.getPort();
-//		LOG.debug("PORT="+port);
-//		MessagingNode a = new MessagingNode();
-//		MessagingNode b = new MessagingNode();
-//		a.start();
-//		b.start();
-//		a.connectToRegistry("localhost", port);
-//		b.connectToRegistry("localhost", port);
 		
 	}
 }

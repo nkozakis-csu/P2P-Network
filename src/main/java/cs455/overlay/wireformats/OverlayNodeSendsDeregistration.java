@@ -31,6 +31,7 @@ public class OverlayNodeSendsDeregistration extends Message {
 			byte[] ipbytes = new byte[size];
 			din.readFully(ipbytes,0,size);
 			this.port = din.readInt();
+			this.ip = new String(ipbytes);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

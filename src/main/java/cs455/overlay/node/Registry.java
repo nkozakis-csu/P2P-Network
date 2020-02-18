@@ -27,7 +27,7 @@ public class Registry extends Node implements Runnable{
 	
 	public Registry(int port) {
 		super();
-		LOG.info("Registry Created with ID "+this.ID);
+		System.out.println("Registry Created");
 		this.listenPort = port;
 		type="Registry";
 		registeredNodes = new ConnectedNode[128];
@@ -44,20 +44,20 @@ public class Registry extends Node implements Runnable{
 //			System.out.println("Node IP mismatch error: "+o.getSource().getSourceIP()+" != "+o.ip);
 //			fail = true;
 //		}else{
-//			for(int i : assignedIDs){
-//				if( (registeredNodes[i].ip.equals(o.ip) && registeredNodes[i].port == o.port)){
-//					fail = true;
-//					System.out.println("Node already registered error");
-//					o.getSource().end();
-//				}
-//			}
+		for(int i : assignedIDs){
+			if( (registeredNodes[i].ip.equals(o.ip) && registeredNodes[i].port == o.port)){
+				fail = true;
+				System.out.println("Node already registered error: address="+o.ip+":"+o.port);
+				o.getSource().end();
+			}
+		}
 //		}
 		if (!fail) {
 			int id = freeIDs.remove(0);
 			this.addSortedID(id);
 			ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);
 			registeredNodes[id] = conNode;
-			LOG.info("registry added node id: " + conNode.ID + " with address " + o.ip + ":" + o.port);
+			System.out.println("Registry added node id: " + conNode.ID + " with address " + o.ip + ":" + o.port);
 			conNode.con.send(new RegistryReportsRegistrationStatus(id, assignedIDs.size()));
 		}
 	}
@@ -78,9 +78,8 @@ public class Registry extends Node implements Runnable{
 	}
 
 	private void deregisterNode(OverlayNodeSendsDeregistration m){
-		m.getSource().send(new RegistryReportsDeregistrationStatus(true));
 		for(int id: assignedIDs){
-			if(registeredNodes[id].port == m.port){
+			if(registeredNodes[id].port == m.port && registeredNodes[id].ip.equals(m.ip)){
 				this.freeIDs.addFirst(id);
 				this.assignedIDs.remove(new Integer(id));
 				this.registeredNodes[id] = null;
@@ -88,6 +87,7 @@ public class Registry extends Node implements Runnable{
 				break;
 			}
 		}
+		m.getSource().send(new RegistryReportsDeregistrationStatus(true));
 
 	}
 	
@@ -106,7 +106,7 @@ public class Registry extends Node implements Runnable{
                 boolean status = nodeStatus.getStatus();
                 int id = nodeStatus.getId();
                 if(!status){
-					LOG.warn("Node: "+id+" failed to setup overlay");
+					System.out.println("Node: "+id+" failed to setup overlay");
 					//todo: something? remove node?
 					freeIDs.addFirst(id);
 					assignedIDs.remove(new Integer(id));
