@@ -126,7 +126,7 @@ public class Registry extends Node implements Runnable{
 //				else System.out.println(finished.ip);
 				if (numFinished >= assignedIDs.size()){
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(50000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -150,6 +150,11 @@ public class Registry extends Node implements Runnable{
 				System.out.println(summary.toString());
 				if (numSummaries == assignedIDs.size()){
 					System.out.println(String.format("\nTotal    | %4d | %8d | %9d | %16d | %16d", totalSent, totalReceived, totalForwarded, totalSumSent, totalSumReceived));
+					this.totalSent =0;
+					this.totalReceived =0;
+					totalForwarded = 0;
+					totalSumReceived = 0;
+					totalSumSent = 0;
 				}
 				break;
 			default:
@@ -205,7 +210,8 @@ public class Registry extends Node implements Runnable{
 	}
 
 	public void startNetwork(int numMessages){
-		numSummaries =0;
+		numSummaries = 0;
+		numFinished = 0;
 		RegistryRequestsTaskInitiate initiateCommand = new RegistryRequestsTaskInitiate(numMessages);
 		for (int i : assignedIDs) {
 			registeredNodes[i].con.send(initiateCommand);
