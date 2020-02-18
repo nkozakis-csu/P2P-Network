@@ -205,6 +205,7 @@ public class Registry extends Node implements Runnable{
 	}
 
 	public void startNetwork(int numMessages){
+		numSummaries =0;
 		RegistryRequestsTaskInitiate initiateCommand = new RegistryRequestsTaskInitiate(numMessages);
 		for (int i : assignedIDs) {
 			registeredNodes[i].con.send(initiateCommand);
@@ -219,6 +220,7 @@ public class Registry extends Node implements Runnable{
 		registry.start();
 		Scanner scanner = new Scanner(System.in);
 		String command = scanner.nextLine();
+		boolean setup = false;
 		while (!command.equals("exit")){
 			if (command.startsWith("setup-overlay")){
 				String[] info = command.split(" ");
@@ -228,17 +230,22 @@ public class Registry extends Node implements Runnable{
 				}else{
 					registry.setupOverlay(3);
 				}
+				setup=true;
 			}else if (command.equals("list-messaging-nodes")){
 				registry.listMessagingNodes();
 			}else if(command.equals("list-routing-tables")){
 				registry.listRoutingTables();
 			}else if(command.startsWith("start")){
-				registry.listener.interrupt();
-				String[] info = command.split(" ");
-				if (info.length>1){
-					registry.startNetwork(Integer.parseInt(info[1]));
-				}else{
-					registry.startNetwork(10);
+				if (setup) {
+					registry.listener.interrupt();
+					String[] info = command.split(" ");
+					if (info.length > 1) {
+						registry.startNetwork(Integer.parseInt(info[1]));
+					} else {
+						registry.startNetwork(10);
+					}
+				} else {
+					System.out.println("Cannot start before overlay is setup");
 				}
 			}else{
 				System.out.println("\n----Commands----\nsetup-overlay [Routing Table Size]\nlist-messaging-nodes\nlist-routing-tables\nstart\n");
