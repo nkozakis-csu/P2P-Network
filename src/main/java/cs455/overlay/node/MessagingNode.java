@@ -36,6 +36,7 @@ public class MessagingNode extends Node implements Runnable {
 		this.numForwarded = 0;
 		this.sumReceived = 0;
 		this.sumSent = 0;
+		this.listenPort = 49999;
 	}
 	
 	@Override

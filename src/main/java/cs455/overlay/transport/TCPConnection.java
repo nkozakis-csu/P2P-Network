@@ -57,11 +57,11 @@ public class TCPConnection{
     }
 
     public String getDestIP(){
-        return sock.getInetAddress().toString();
+        return sock.getInetAddress().getHostAddress();
     }
 
     public String getSourceIP(){
-        return sock.getLocalAddress().toString();
+        return sock.getLocalAddress().getHostAddress();
     }
     
     public void end(){

@@ -39,17 +39,27 @@ public class Registry extends Node implements Runnable{
 	}
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
-		for(int i : assignedIDs){
-			if (registeredNodes[i].ip == o.ip && registeredNodes[i].port == o.port){
-				registeredNodes[i].con = o.getSource();
+		boolean fail = false;
+		if (!(o.getSource().getSourceIP().equals(o.ip))){
+			System.out.println("Node IP mismatch error: "+o.getSource().getSourceIP()+" != "+o.ip);
+			fail = true;
+		}else{
+			for(int i : assignedIDs){
+				if( (registeredNodes[i].ip.equals(o.ip) && registeredNodes[i].port == o.port)){
+					fail = true;
+					System.out.println("Node already registered error");
+					o.getSource().end();
+				}
 			}
 		}
-		int id = freeIDs.remove(0);
-		this.addSortedID(id);
-		ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);
-		registeredNodes[id]=conNode;
-		LOG.info("registry added node id: "+conNode.ID+" with address "+o.ip+":"+o.port);
-		conNode.con.send(new RegistryReportsRegistrationStatus(id, assignedIDs.size()));
+		if (!fail) {
+			int id = freeIDs.remove(0);
+			this.addSortedID(id);
+			ConnectedNode conNode = new ConnectedNode(id, o.getSource(), o.ip, o.port);
+			registeredNodes[id] = conNode;
+			LOG.info("registry added node id: " + conNode.ID + " with address " + o.ip + ":" + o.port);
+			conNode.con.send(new RegistryReportsRegistrationStatus(id, assignedIDs.size()));
+		}
 	}
 
 	public void addSortedID(int id){
