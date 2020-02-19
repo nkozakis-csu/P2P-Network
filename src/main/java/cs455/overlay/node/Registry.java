@@ -122,8 +122,10 @@ public class Registry extends Node implements Runnable{
                 break;
 			case OVERLAY_NODE_REPORTS_TASK_FINISHED:
 				OverlayNodeReportsTaskFinished finished = (OverlayNodeReportsTaskFinished) m;
+				System.out.println("Node "+finished.id+" finished task.");
 				numFinished++;
 				if (numFinished >= assignedIDs.size()){
+					System.out.println("All nodes finished task. Waiting 60 seconds before retrieving traffic summaries");
 					try {
 						Thread.sleep(60000);
 					} catch (InterruptedException e) {
@@ -249,7 +251,6 @@ public class Registry extends Node implements Runnable{
 					} else {
 						registry.startNetwork(10);
 					}
-					System.out.println("Waiting 60 seconds before retrieving traffic summaries");
 				} else {
 					System.out.println("Cannot start before overlay is setup");
 				}
