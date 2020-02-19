@@ -69,12 +69,6 @@ public class MessagingNode extends Node implements Runnable {
 				break;
 			case REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
 				registrySock.send(new OverlayNodeReportsTrafficSummary(this.ID,this.numSent, this.numForwarded, this.sumSent, this.numReceived, this.sumReceived));
-				this.numSent = 0;
-				numForwarded = 0;
-				numReceived =0;
-				sumSent =0;
-				sumReceived = 0;
-
 				break;
 			case REGISTRY_REPORTS_DEREGISTRATION_STATUS:
 				RegistryReportsDeregistrationStatus d = (RegistryReportsDeregistrationStatus) m;
@@ -114,6 +108,11 @@ public class MessagingNode extends Node implements Runnable {
 	}
 	
 	public void initiateTask(int numMessages){
+		numSent = 0;
+		numForwarded = 0;
+		numReceived = 0;
+		sumSent = 0;
+		sumReceived = 0;
 		System.out.println(this.type+":"+this.ID+": SENDING "+numMessages+" messages");
 		Random rand = new Random();
 		int destination;

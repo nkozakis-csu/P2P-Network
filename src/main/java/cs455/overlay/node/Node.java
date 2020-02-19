@@ -42,7 +42,7 @@ abstract class Node{
 			synchronized (this){
 				notifyAll();
 			}
-			LOG.info(this.type+": Listening on "+listenAddress + ":"+listenPort);
+			System.out.println("Listening on "+listenAddress + ":"+listenPort);
 			while (!terminate) {
 				Socket recvSocket = serverSocket.accept();
 				consIN.add(new TCPConnection(recvSocket, 0, recvQueue));

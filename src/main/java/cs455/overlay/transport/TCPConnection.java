@@ -61,7 +61,7 @@ public class TCPConnection{
     }
 
     public String getSourceIP(){
-        return sock.getLocalAddress().getHostAddress();
+        return sock.getRemoteSocketAddress().toString();
     }
     
     public void end(){

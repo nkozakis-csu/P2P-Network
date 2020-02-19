@@ -40,6 +40,7 @@ public class Registry extends Node implements Runnable{
 	
 	private void registerNode(OverlayNodeSendsRegistration o){
 		boolean fail = false;
+//		System.out.println(o.getSource().getSourceIP()+ "__"+o.ip);
 //		if (!(o.getSource().getSourceIP().equals(o.ip))){
 //			System.out.println("Node IP mismatch error: "+o.getSource().getSourceIP()+" != "+o.ip);
 //			fail = true;
@@ -121,12 +122,10 @@ public class Registry extends Node implements Runnable{
                 break;
 			case OVERLAY_NODE_REPORTS_TASK_FINISHED:
 				OverlayNodeReportsTaskFinished finished = (OverlayNodeReportsTaskFinished) m;
-//				if (registeredNodes[finished.id].ip.equals(finished.ip))
 				numFinished++;
-//				else System.out.println(finished.ip);
 				if (numFinished >= assignedIDs.size()){
 					try {
-						Thread.sleep(50000);
+						Thread.sleep(60000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -190,7 +189,7 @@ public class Registry extends Node implements Runnable{
 	public void listMessagingNodes(){
 		System.out.println("Entries: ");
 		for (int i: assignedIDs) {
-			System.out.print(i+" ");
+			System.out.printf("Node %3d | Listening on %s:%d\n", i, registeredNodes[i].ip, registeredNodes[i].port);
 		}
 		System.out.println("");
 	}
@@ -250,6 +249,7 @@ public class Registry extends Node implements Runnable{
 					} else {
 						registry.startNetwork(10);
 					}
+					System.out.println("Waiting 60 seconds before retrieving traffic summaries");
 				} else {
 					System.out.println("Cannot start before overlay is setup");
 				}
